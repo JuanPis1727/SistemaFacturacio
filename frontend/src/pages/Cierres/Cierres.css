@@ -1,0 +1,78 @@
+.cierre-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.cierre-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.cierre-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  padding: 2rem;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.cierre-title {
+  color: #60a5fa;
+  font-size: 1.2rem;
+}
+
+.cierre-card .stat {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 0.5rem;
+}
+
+.big-total {
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-align: center;
+  margin: 1rem 0;
+  color: #34d399;
+}
+
+.input-money {
+  width: 100%;
+  font-size: 2rem;
+  text-align: center;
+  padding: 1rem;
+  background: rgba(0,0,0,0.3);
+  border: 2px solid #60a5fa;
+  color: white;
+  border-radius: 12px;
+}
+
+.diferencia-box {
+  padding: 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.diferencia-box.ok {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid #10b981;
+  color: #34d399;
+}
+
+.diferencia-box.faltante {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid #ef4444;
+  color: #fca5a5;
+}
+
+.diferencia-box.sobrante {
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid #f59e0b;
+  color: #fbbf24;
+}

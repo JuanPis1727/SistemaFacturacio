@@ -1,0 +1,44 @@
+.cierres-dia-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .tabs-header {
+    display: flex;
+    gap: 1rem;
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 1rem;
+  }
+  
+  .tab-btn {
+    padding: 1rem 1.5rem;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .tab-btn:hover {
+    color: #0f172a;
+  }
+  
+  .tab-btn.active {
+    color: #3b82f6;
+    border-bottom-color: #3b82f6;
+  }
+  
+  @media (max-width: 768px) {
+    .tab-content > div {
+      grid-template-columns: 1fr !important;
+    }
+    
+    .cierre-detalles {
+      grid-template-columns: 1fr !important;
+    }
+  }
