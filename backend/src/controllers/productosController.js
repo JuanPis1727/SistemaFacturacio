@@ -101,9 +101,17 @@ export const anularProducto = async (req, res) => {
   try {
     const { id } = req.params;
     const pool = await getConnection();
+    
+    // Permitir NULL si no estaba habilitado
+    try { await pool.request().query('ALTER TABLE factura_items ALTER COLUMN producto_id INT NULL'); } catch(e){}
+
+    // Desvincular de items de factura para no corromper el historial
+    await pool.request().input('id', sql.Int, id).query('UPDATE factura_items SET producto_id = NULL WHERE producto_id = @id');
+
     await pool.request()
       .input('id', sql.Int, id)
       .query('DELETE FROM productos WHERE id = @id');
+      
     res.json({ success: true, message: 'Producto eliminado' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error al anular producto', error: error.message });

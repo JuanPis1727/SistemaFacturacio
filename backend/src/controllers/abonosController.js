@@ -32,6 +32,15 @@ export const createAbono = async (req, res) => {
     // Al hacer este insert, el motor de SQL Server actualizará automáticamente 
     // la deuda total del cliente en la tabla 'clientes' y el estado a 'Pagado' en 'facturas' si es necesario.
     
+    // 1. Calcular la nueva deuda ANTES de insertar para evitar que posibles triggers la sobrescriban mal
+    const clienteRes = await pool.request()
+      .input('cliente_id', sql.Int, cliente_id)
+      .query('SELECT deuda_total FROM clientes WHERE id = @cliente_id');
+    
+    const deudaActual = clienteRes.recordset[0]?.deuda_total || 0;
+    let nuevaDeuda = deudaActual - monto;
+    if (nuevaDeuda < 0) nuevaDeuda = 0;
+
     const result = await pool.request()
       .input('factura_id', sql.Int, factura_id)
       .input('cliente_id', sql.Int, cliente_id)
@@ -48,12 +57,16 @@ export const createAbono = async (req, res) => {
 
     const abonoId = result.recordset?.[0]?.id;
 
-    // Recalcular manualmente para sobreescribir cualquier error de los triggers
+    // 2. Sobreescribir manualmente con el valor exacto para anular cálculos erróneos de triggers
     await pool.request()
       .input('factura_id', sql.Int, factura_id)
       .input('cliente_id', sql.Int, cliente_id)
+      .input('nueva_deuda', sql.Decimal(16,2), nuevaDeuda)
       .query(`
-        -- 1. Recalcular estado exacto de facturas secuencialmente (waterfall)
+        -- Actualizar la deuda total del cliente con la resta exacta
+        UPDATE clientes SET deuda_total = @nueva_deuda WHERE id = @cliente_id;
+
+        -- Recalcular estado exacto de facturas secuencialmente (waterfall)
         DECLARE @total_pagado_general DECIMAL(16,2);
         SELECT @total_pagado_general = ISNULL(SUM(monto), 0) FROM abonos WHERE cliente_id = @cliente_id;
         
@@ -82,18 +95,6 @@ export const createAbono = async (req, res) => {
         
         CLOSE c_fac;
         DEALLOCATE c_fac;
-
-        -- 2. Recalcular deuda total exacta del cliente
-        DECLARE @total_creditos DECIMAL(16,2);
-        DECLARE @total_pagado DECIMAL(16,2);
-
-        SELECT @total_creditos = ISNULL(SUM(total), 0) FROM facturas WHERE cliente_id = @cliente_id AND (tipo_venta = 'crédito' OR tipo_venta = 'credito');
-        SELECT @total_pagado = ISNULL(SUM(monto), 0) FROM abonos WHERE cliente_id = @cliente_id;
-
-        DECLARE @nueva_deuda DECIMAL(16,2) = @total_creditos - @total_pagado;
-        IF @nueva_deuda < 0 SET @nueva_deuda = 0;
-
-        UPDATE clientes SET deuda_total = @nueva_deuda WHERE id = @cliente_id;
       `);
 
     res.status(201).json({ success: true, message: 'Abono registrado correctamente', id: abonoId });

@@ -9,7 +9,7 @@ export default function Clientes() {
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ nombre: '', cedula: '', email: '', telefono: '', direccion: '', deuda_inicial: 0 });
+  const [formData, setFormData] = useState({ nombre: '', cedula: '', email: '', telefono: '', direccion: '', deuda_inicial: '' });
   const [editId, setEditId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -28,9 +28,15 @@ export default function Clientes() {
     e.preventDefault();
     const isEdit = editId !== null;
     const url = isEdit ? `/clientes/${editId}` : '/clientes';
+    
+    const payload = {
+      ...formData,
+      deuda_inicial: Number(formData.deuda_inicial) || 0
+    };
+
     const res = await fetchAPI(url, {
       method: isEdit ? 'PUT' : 'POST',
-      body: JSON.stringify(formData)
+      body: JSON.stringify(payload)
     });
     
     if (res.success) {
@@ -81,8 +87,7 @@ export default function Clientes() {
   const cerrarModal = () => {
     setIsModalOpen(false);
     setEditId(null);
-    setEditId(null);
-    setFormData({ nombre: '', cedula: '', email: '', telefono: '', direccion: '', deuda_inicial: 0 });
+    setFormData({ nombre: '', cedula: '', email: '', telefono: '', direccion: '', deuda_inicial: '' });
   };
 
   const filteredClientes = clientes.filter(c => 
@@ -211,8 +216,8 @@ export default function Clientes() {
                     min="0"
                     placeholder="$0"
                     style={{ fontWeight: 'bold', color: '#ef4444' }}
-                    value={formData.deuda_inicial || ''}
-                    onChange={(e) => setFormData({...formData, deuda_inicial: Number(e.target.value)})}
+                    value={formData.deuda_inicial}
+                    onChange={(e) => setFormData({...formData, deuda_inicial: e.target.value === '' ? '' : Number(e.target.value)})}
                   />
                   <small style={{ color: '#64748b', fontSize: '0.8rem' }}>Digita el saldo deudor actual si el cliente ya te debe dinero.</small>
                 </div>

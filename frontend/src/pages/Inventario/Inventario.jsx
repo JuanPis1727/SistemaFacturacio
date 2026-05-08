@@ -45,9 +45,9 @@ export default function Inventario() {
 
   const abrirIngreso = (producto) => {
     setSelectedProduct(producto);
-    const costo = producto.precio_costo || 0;
-    const ventaActual = producto.precio_venta || (costo > 0 ? Math.ceil(costo / 0.80) : 0);
-    setIngresoData({ cantidad: 1, costo_unitario: costo, precio_venta: ventaActual });
+    const costo = producto.precio_costo || '';
+    const ventaActual = producto.precio_venta || (costo > 0 ? Math.ceil(costo / 0.80) : '');
+    setIngresoData({ cantidad: '', costo_unitario: costo, precio_venta: ventaActual });
     setIsModalOpen(true);
   };
 
@@ -57,9 +57,9 @@ export default function Inventario() {
     // Llamar a /api/inventario para que sume el stock
     const payload = {
       producto_id: selectedProduct.id,
-      cantidad: Number(ingresoData.cantidad),
-      precio_costo: Number(ingresoData.costo_unitario),
-      precio_venta: Number(ingresoData.precio_venta),
+      cantidad: Number(ingresoData.cantidad) || 0,
+      precio_costo: Number(ingresoData.costo_unitario) || 0,
+      precio_venta: Number(ingresoData.precio_venta) || 0,
       proveedor: '',
       notas: 'Ingreso manual por interfaz de inventario'
     };
@@ -171,7 +171,7 @@ export default function Inventario() {
                   min="1"
                   className="form-control" 
                   value={ingresoData.cantidad}
-                  onChange={(e) => setIngresoData({...ingresoData, cantidad: e.target.value})}
+                  onChange={(e) => setIngresoData({...ingresoData, cantidad: e.target.value === '' ? '' : Number(e.target.value)})}
                   required 
                   autoFocus
                 />
@@ -185,8 +185,8 @@ export default function Inventario() {
                   className="form-control" 
                   value={ingresoData.costo_unitario}
                   onChange={(e) => {
-                    const costo = Number(e.target.value);
-                    const nuevoPrecioVenta = costo > 0 ? Math.ceil(costo / 0.80) : ingresoData.precio_venta;
+                    const costo = e.target.value === '' ? '' : Number(e.target.value);
+                    const nuevoPrecioVenta = costo !== '' && costo > 0 ? Math.ceil(costo / 0.80) : ingresoData.precio_venta;
                     setIngresoData({...ingresoData, costo_unitario: costo, precio_venta: nuevoPrecioVenta});
                   }}
                   required 
@@ -200,8 +200,8 @@ export default function Inventario() {
                   step="0.01"
                   className="form-control" 
                   style={{color: '#10b981', fontWeight: 'bold'}}
-                  value={ingresoData.precio_venta || 0}
-                  onChange={(e) => setIngresoData({...ingresoData, precio_venta: Number(e.target.value)})}
+                  value={ingresoData.precio_venta}
+                  onChange={(e) => setIngresoData({...ingresoData, precio_venta: e.target.value === '' ? '' : Number(e.target.value)})}
                   required 
                 />
               </div>

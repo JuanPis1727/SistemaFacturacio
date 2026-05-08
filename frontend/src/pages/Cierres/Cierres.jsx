@@ -48,8 +48,8 @@ export default function Cierres() {
     setLoading(false);
   };
 
-  const totalFacturasContado = facturasHoy.reduce((acc, f) => acc + f.total, 0);
-  const totalAbonos = abonosHoy.reduce((acc, a) => acc + a.monto, 0);
+  const totalFacturasContado = facturasHoy.reduce((acc, f) => acc + (Number(f.total) || 0), 0);
+  const totalAbonos = abonosHoy.reduce((acc, a) => acc + (Number(a.monto) || 0), 0);
   const totalCalculado = totalFacturasContado + totalAbonos;
 
   const procesarCierre = async () => {

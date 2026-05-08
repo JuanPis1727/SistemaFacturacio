@@ -39,12 +39,12 @@ export default function Dashboard() {
 
   const ingresosContado = facturasHoy
     .filter(f => f.estado?.toLowerCase() !== 'anulada' && f.estado?.toLowerCase() !== 'pendiente' && f.tipo_venta?.toLowerCase() !== 'crédito' && f.tipo_venta?.toLowerCase() !== 'credito')
-    .reduce((acc, f) => acc + f.total, 0);
+    .reduce((acc, f) => acc + (Number(f.total) || 0), 0);
 
-  const ingresosAbonos = abonosHoy.reduce((acc, a) => acc + a.monto, 0);
+  const ingresosAbonos = abonosHoy.reduce((acc, a) => acc + (Number(a.monto) || 0), 0);
   const ingresosTotales = ingresosContado + ingresosAbonos;
 
-  const ingresosPendientes = facturasHoy.filter(f => f.estado?.toLowerCase() === 'pendiente' || f.tipo_venta?.toLowerCase() === 'crédito').reduce((acc, f) => acc + f.total, 0);
+  const ingresosPendientes = facturasHoy.filter(f => f.estado?.toLowerCase() === 'pendiente' || f.tipo_venta?.toLowerCase() === 'crédito').reduce((acc, f) => acc + (Number(f.total) || 0), 0);
   const facturasExitosas = facturasHoy.filter(f => f.estado?.toLowerCase().startsWith('pagad')).length + abonosHoy.length;
 
   return (

@@ -1,15 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, Save, Trash2, Plus, Search, ChevronDown, ChevronUp, FileText, TrendingDown, TrendingUp } from 'lucide-react';
+import React, { useState, useEffect, useContext } from 'react';
+import { Calendar, Save, Trash2, Plus, Search, ChevronDown, ChevronUp, FileText, TrendingDown, TrendingUp, Eye, Printer, XCircle } from 'lucide-react';
 import { fetchAPI } from '../../services/api';
+import { AuthContext } from '../../context/AuthContext';
 import './CierresDia.css';
 
 export default function CierresDia() {
+  const { user } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState('cierre_actual');
   
-  // Tab 1: Cierre Actual
+  // Tab 1: Cierre Actual (Persistencia Local)
   const [proveedores, setProveedores] = useState([]);
-  const [facturas, setFacturas] = useState([]);
-  const [ajustes, setAjustes] = useState([]);
+  const [facturas, setFacturas] = useState(() => {
+    const saved = localStorage.getItem('cierresDia_facturas');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [ajustes, setAjustes] = useState(() => {
+    const saved = localStorage.getItem('cierresDia_ajustes');
+    return saved ? JSON.parse(saved) : [];
+  });
   
   const [nuevaFactura, setNuevaFactura] = useState({ proveedor_nombre: '', valor: '', descripcion: '' });
   const [nuevoAjuste, setNuevoAjuste] = useState({ tipo: 'resta', valor: '', descripcion: '' });
@@ -19,6 +27,9 @@ export default function CierresDia() {
   const [filtroMes, setFiltroMes] = useState('');
   const [filtroProveedor, setFiltroProveedor] = useState('');
   const [expandedId, setExpandedId] = useState(null);
+  
+  // Modal de PDF/Impresión
+  const [viewInvoice, setViewInvoice] = useState(null);
 
   const [loading, setLoading] = useState(false);
 
@@ -26,6 +37,15 @@ export default function CierresDia() {
     cargarProveedores();
     cargarHistorial();
   }, []);
+
+  // Persistir en LocalStorage
+  useEffect(() => {
+    localStorage.setItem('cierresDia_facturas', JSON.stringify(facturas));
+  }, [facturas]);
+
+  useEffect(() => {
+    localStorage.setItem('cierresDia_ajustes', JSON.stringify(ajustes));
+  }, [ajustes]);
 
   const cargarProveedores = async () => {
     const res = await fetchAPI('/proveedores');
@@ -42,7 +62,6 @@ export default function CierresDia() {
     if (!nuevaFactura.proveedor_nombre || !nuevaFactura.valor) {
       return window.Swal.fire('Atención', 'Ingrese proveedor y valor', 'warning');
     }
-    // Try to find if it corresponds to an existing provider for its ID, else use custom
     const prov = proveedores.find(p => p.nombre.toLowerCase() === nuevaFactura.proveedor_nombre.toLowerCase());
     const provId = prov ? prov.id : 'N/A';
     
@@ -83,6 +102,8 @@ export default function CierresDia() {
     if(confirm.isConfirmed){
       setFacturas([]);
       setAjustes([]);
+      localStorage.removeItem('cierresDia_facturas');
+      localStorage.removeItem('cierresDia_ajustes');
     }
   };
 
@@ -109,7 +130,10 @@ export default function CierresDia() {
       ajustes,
       total_facturas: totalFacturas,
       total_ajustes: totalAjustes,
-      total_final: totalFinal
+      total_final: totalFinal,
+      usuario_id: user?.id,
+      usuario_nombre: user?.nombre,
+      usuario_rol: user?.rol
     };
 
     const res = await fetchAPI('/cierres-dia', {
@@ -121,6 +145,8 @@ export default function CierresDia() {
       window.Swal.fire({ title: '¡Guardado!', text: 'Cierre del día guardado con éxito', icon: 'success', timer: 1500, showConfirmButton: false });
       setFacturas([]);
       setAjustes([]);
+      localStorage.removeItem('cierresDia_facturas');
+      localStorage.removeItem('cierresDia_ajustes');
       cargarHistorial();
       setActiveTab('historial');
     } else {
@@ -136,19 +162,12 @@ export default function CierresDia() {
     { num: '10', nombre: 'Octubre' }, { num: '11', nombre: 'Noviembre' }, { num: '12', nombre: 'Diciembre' }
   ];
 
-  // Filtro
   const filtrarHistorial = () => {
     let filtrado = [...historial];
     if (filtroMes) {
-      filtrado = filtrado.filter(c => {
-        // c.fecha viene como YYYY-MM-DDT...
-        const mesCierre = c.fecha.split('-')[1];
-        return mesCierre === filtroMes;
-      });
+      filtrado = filtrado.filter(c => c.fecha.split('-')[1] === filtroMes);
     }
-
     if (filtroProveedor) {
-      // Necesitamos verificar si alguna factura de este cierre tiene el proveedor
       filtrado = filtrado.filter(c => c.facturas.some(f => f.proveedor_id === filtroProveedor));
     }
     return filtrado;
@@ -156,11 +175,9 @@ export default function CierresDia() {
 
   const cierresFiltrados = filtrarHistorial();
   
-  // Total para "Cuanto le compré" considerando el filtro
   const calcularTotalFiltrado = () => {
     if (!filtroProveedor && !filtroMes) return null;
     let sumaFacturas = 0;
-    
     cierresFiltrados.forEach(cierre => {
       cierre.facturas.forEach(f => {
         if (!filtroProveedor || f.proveedor_id === filtroProveedor) {
@@ -175,7 +192,7 @@ export default function CierresDia() {
   return (
     <div className="cierres-dia-container fade-in">
       
-      <div className="tabs-header">
+      <div className="tabs-header no-print">
         <button className={`tab-btn ${activeTab === 'cierre_actual' ? 'active' : ''}`} onClick={() => setActiveTab('cierre_actual')}>
           Cierre Actual
         </button>
@@ -204,7 +221,7 @@ export default function CierresDia() {
                   <datalist id="proveedores-list">
                     {proveedores.map(p => <option key={p.id} value={p.nombre} />)}
                   </datalist>
-                  <input type="number" className="form-control" placeholder="Valor ($)" value={nuevaFactura.valor} onChange={(e) => setNuevaFactura({...nuevaFactura, valor: e.target.value})} />
+                  <input type="number" className="form-control" placeholder="Valor ($)" value={nuevaFactura.valor || ''} onChange={(e) => setNuevaFactura({...nuevaFactura, valor: e.target.value})} />
                   <input type="text" className="form-control" placeholder="Descripción (Opcional)" value={nuevaFactura.descripcion} onChange={(e) => setNuevaFactura({...nuevaFactura, descripcion: e.target.value})} />
                   <button className="secondary-btn" onClick={agregarFactura} style={{ width: '100%' }}><Plus size={18}/> Agregar a Cierre</button>
                 </div>
@@ -220,7 +237,7 @@ export default function CierresDia() {
                     <option value="resta">Restar (Ej: Devolución)</option>
                     <option value="suma">Sumar (Ej: Gasto extra)</option>
                   </select>
-                  <input type="number" className="form-control" placeholder="Valor ($)" value={nuevoAjuste.valor} onChange={(e) => setNuevoAjuste({...nuevoAjuste, valor: e.target.value})} />
+                  <input type="number" className="form-control" placeholder="Valor ($)" value={nuevoAjuste.valor || ''} onChange={(e) => setNuevoAjuste({...nuevoAjuste, valor: e.target.value})} />
                   <input type="text" className="form-control" placeholder="Descripción (Opcional)" value={nuevoAjuste.descripcion} onChange={(e) => setNuevoAjuste({...nuevoAjuste, descripcion: e.target.value})} />
                   <button className="secondary-btn" onClick={agregarAjuste} style={{ width: '100%' }}><Plus size={18}/> Agregar Ajuste</button>
                 </div>
@@ -277,7 +294,7 @@ export default function CierresDia() {
                    </strong>
                  </div>
                  <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '12px', borderTop: '2px solid #e2e8f0', fontSize: '1.2rem' }}>
-                   <span style={{ color: '#0f172a', fontWeight: 'bold' }}>Total a Pagar Día:</span>
+                   <span style={{ color: '#0f172a', fontWeight: 'bold' }}>Total Cierre Día:</span>
                    <strong style={{ color: '#0f172a' }}>${totalFinal.toLocaleString()}</strong>
                  </div>
               </div>
@@ -293,7 +310,7 @@ export default function CierresDia() {
       )}
 
       {activeTab === 'historial' && (
-        <div className="tab-content fade-in">
+        <div className="tab-content fade-in no-print">
            <div className="filtros-card card shadow-sm" style={{ padding: '1.5rem', background: 'white', borderRadius: '12px', marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
              <div style={{ flex: 1, minWidth: '200px' }}>
                <label style={{ display: 'block', marginBottom: '5px', color: '#64748b', fontSize: '0.9rem' }}>Filtro por Mes</label>
@@ -334,12 +351,25 @@ export default function CierresDia() {
                         <h4 style={{ margin: '0 0 5px 0', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Calendar size={18} /> Cierre del {new Date(cierre.fecha).toLocaleDateString()}
                         </h4>
+                        <span style={{ fontSize: '0.9rem', color: '#64748b', display: 'block', marginBottom: '5px' }}>
+                          Guardado por: <strong>{cierre.usuario_nombre || 'Desconocido'}</strong> ({cierre.usuario_rol || 'Sistema'})
+                        </span>
                         <span style={{ fontSize: '0.9rem', color: '#64748b' }}>
                           {cierre.facturas?.length || 0} Facturas | Total final: <strong style={{ color: '#059669' }}>${Number(cierre.total_final).toLocaleString()}</strong>
                         </span>
                       </div>
-                      <div style={{ color: '#94a3b8' }}>
-                         {expandedId === cierre.id ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                         <button 
+                            onClick={(e) => { e.stopPropagation(); setViewInvoice(cierre); }}
+                            className="secondary-btn" 
+                            style={{ padding: '8px', display: 'flex', alignItems: 'center', gap: '5px', borderRadius: '8px' }}
+                            title="Ver e Imprimir Detalle"
+                         >
+                           <Eye size={18} color="#3b82f6" /> Ver
+                         </button>
+                         <div style={{ color: '#94a3b8' }}>
+                           {expandedId === cierre.id ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+                         </div>
                       </div>
                     </div>
                     
@@ -378,6 +408,89 @@ export default function CierresDia() {
                ))
              )}
            </div>
+        </div>
+      )}
+
+      {/* MODAL: VISTA DE FACTURA/PDF PARA IMPRIMIR */}
+      {viewInvoice && (
+        <div className="modal-overlay">
+          <div className="modal-content glass-card" style={{ maxWidth: '600px' }}>
+            <div className="modal-header no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2>Detalle de Cierre</h2>
+              <button className="close-btn" onClick={() => setViewInvoice(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#ef4444' }}><XCircle size={28} /></button>
+            </div>
+            
+            <div className="invoice-actions no-print" style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '1rem', marginTop: '1rem' }}>
+               <button className="primary-btn" onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#3b82f6' }}>
+                  <Printer size={18} /> Imprimir / PDF
+               </button>
+            </div>
+
+            <div className="print-area" style={{ background: '#fff', color: '#000', padding: '20px', borderRadius: '8px', fontFamily: 'monospace', fontSize: '14px' }}>
+               <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                 <h2 style={{ margin: '0 0 5px 0' }}>REPORTE DE CIERRE DE DÍA</h2>
+                 <p style={{ margin: '0' }}>---------------------------------</p>
+                 <p style={{ margin: '5px 0' }}>Fecha: {new Date(viewInvoice.fecha).toLocaleDateString()}</p>
+                 <p style={{ margin: '5px 0' }}>Usuario: {viewInvoice.usuario_nombre || 'Desconocido'} ({viewInvoice.usuario_rol || 'N/A'})</p>
+                 <p style={{ margin: '0' }}>---------------------------------</p>
+               </div>
+
+               <h3 style={{ borderBottom: '1px dashed #000', paddingBottom: '5px', marginTop: '20px' }}>FACTURAS DE PROVEEDORES</h3>
+               <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', marginBottom: '15px' }}>
+                 <thead>
+                   <tr>
+                     <th style={{ paddingBottom: '5px' }}>Proveedor / Detalle</th>
+                     <th style={{ paddingBottom: '5px', textAlign: 'right' }}>Valor</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                   {viewInvoice.facturas?.length === 0 ? <tr><td colSpan="2" style={{textAlign:'center'}}>Sin facturas</td></tr> : null}
+                   {viewInvoice.facturas?.map(f => (
+                     <tr key={f.id}>
+                       <td style={{ paddingTop: '5px' }}>{f.proveedor_nombre} <br/><small>{f.descripcion}</small></td>
+                       <td style={{ paddingTop: '5px', textAlign: 'right' }}>${Number(f.valor).toLocaleString()}</td>
+                     </tr>
+                   ))}
+                 </tbody>
+               </table>
+               <div style={{ textAlign: 'right', fontWeight: 'bold' }}>
+                  Total Facturas: ${Number(viewInvoice.total_facturas).toLocaleString()}
+               </div>
+
+               <h3 style={{ borderBottom: '1px dashed #000', paddingBottom: '5px', marginTop: '20px' }}>AJUSTES AL CIERRE</h3>
+               <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', marginBottom: '15px' }}>
+                 <thead>
+                   <tr>
+                     <th style={{ paddingBottom: '5px' }}>Descripción</th>
+                     <th style={{ paddingBottom: '5px', textAlign: 'right' }}>Valor</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                   {viewInvoice.ajustes?.length === 0 ? <tr><td colSpan="2" style={{textAlign:'center'}}>Sin ajustes</td></tr> : null}
+                   {viewInvoice.ajustes?.map(a => (
+                     <tr key={a.id}>
+                       <td style={{ paddingTop: '5px' }}>{a.descripcion || a.tipo}</td>
+                       <td style={{ paddingTop: '5px', textAlign: 'right' }}>
+                         {a.tipo === 'suma' ? '+' : '-'}${Number(a.valor).toLocaleString()}
+                       </td>
+                     </tr>
+                   ))}
+                 </tbody>
+               </table>
+               <div style={{ textAlign: 'right', fontWeight: 'bold' }}>
+                  Total Ajustes: ${Number(viewInvoice.total_ajustes).toLocaleString()}
+               </div>
+
+               <div style={{ marginTop: '30px', borderTop: '2px solid #000', paddingTop: '10px', textAlign: 'right', fontSize: '18px', fontWeight: 'bold' }}>
+                  TOTAL CIERRE DÍA: ${Number(viewInvoice.total_final).toLocaleString()}
+               </div>
+
+               <div style={{ textAlign: 'center', marginTop: '40px', fontSize: '12px' }}>
+                 <p>---------------------------------</p>
+                 <p>Documento de control interno</p>
+               </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

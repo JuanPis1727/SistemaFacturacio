@@ -78,7 +78,13 @@ export default function Abonos() {
     });
 
     if (res.success) {
-      alert(`¡Abono de $${payload.monto.toLocaleString()} registrado con éxito!`);
+      window.Swal.fire({
+        title: '¡Abono registrado!',
+        text: `¡Abono de $${payload.monto.toLocaleString()} registrado con éxito!`,
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
+      });
       const nuevaDeuda = clienteSeleccionado.deuda_total - payload.monto;
       setClienteSeleccionado({ ...clienteSeleccionado, deuda_total: nuevaDeuda });
       
@@ -90,7 +96,7 @@ export default function Abonos() {
         setFacturasPendientes([]);
       }
     } else {
-      alert(res.message || "Error procesando el abono");
+      window.Swal.fire('Error', res.message || "Error procesando el abono", 'error');
     }
     setLoading(false);
   };

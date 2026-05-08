@@ -89,12 +89,12 @@ export default function Configuracion() {
             
             <div className="form-group">
               <label>Consecutivo Actual (Siguiente factura):</label>
-              <input className="form-control" type="number" value={formData.consecutivo_actual || ''} onChange={e => setFormData({...formData, consecutivo_actual: Number(e.target.value)})} />
+              <input className="form-control" type="number" value={formData.consecutivo_actual} onChange={e => setFormData({...formData, consecutivo_actual: e.target.value === '' ? '' : Number(e.target.value)})} />
             </div>
 
             <div className="form-group">
               <label>IVA por defecto (%):</label>
-              <input className="form-control" type="number" step="0.01" value={formData.iva_porcentaje || ''} onChange={e => setFormData({...formData, iva_porcentaje: Number(e.target.value)})} />
+              <input className="form-control" type="number" step="0.01" value={formData.iva_porcentaje} onChange={e => setFormData({...formData, iva_porcentaje: e.target.value === '' ? '' : Number(e.target.value)})} />
             </div>
 
             <div className="form-group">

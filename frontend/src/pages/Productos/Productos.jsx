@@ -9,7 +9,7 @@ export default function Productos() {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ nombre: '', codigo: '', tipo: 'producto', descripcion: '', precio_costo: 0, precio_venta: 0, stock: 0, stock_minimo: 0 });
+  const [formData, setFormData] = useState({ nombre: '', codigo: '', tipo: 'producto', descripcion: '', precio_costo: '', precio_venta: '', stock: '', stock_minimo: '' });
   const [editId, setEditId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -28,9 +28,19 @@ export default function Productos() {
     e.preventDefault();
     const isEdit = editId !== null;
     const url = isEdit ? `/productos/${editId}` : '/productos';
+    
+    // Ensure numbers are properly sent even if empty string is left
+    const payload = {
+      ...formData,
+      precio_costo: Number(formData.precio_costo) || 0,
+      precio_venta: Number(formData.precio_venta) || 0,
+      stock: Number(formData.stock) || 0,
+      stock_minimo: Number(formData.stock_minimo) || 0
+    };
+
     const res = await fetchAPI(url, {
       method: isEdit ? 'PUT' : 'POST',
-      body: JSON.stringify(formData)
+      body: JSON.stringify(payload)
     });
     
     if (res.success) {
@@ -71,10 +81,10 @@ export default function Productos() {
       codigo: prod.codigo, 
       tipo: prod.tipo || 'producto',
       descripcion: prod.descripcion || '',
-      precio_costo: prod.precio_costo,
-      precio_venta: prod.precio_venta,
-      stock: prod.stock,
-      stock_minimo: prod.stock_minimo
+      precio_costo: prod.precio_costo || '',
+      precio_venta: prod.precio_venta || '',
+      stock: prod.stock || '',
+      stock_minimo: prod.stock_minimo || ''
     });
     setEditId(prod.id);
     setIsModalOpen(true);
@@ -83,8 +93,7 @@ export default function Productos() {
   const cerrarModal = () => {
     setIsModalOpen(false);
     setEditId(null);
-    setEditId(null);
-    setFormData({ nombre: '', codigo: '', tipo: 'producto', descripcion: '', precio_costo: 0, precio_venta: 0, stock: 0, stock_minimo: 0 });
+    setFormData({ nombre: '', codigo: '', tipo: 'producto', descripcion: '', precio_costo: '', precio_venta: '', stock: '', stock_minimo: '' });
   };
 
   const filteredProductos = productos.filter(p => {
@@ -201,11 +210,11 @@ export default function Productos() {
                   className="form-control" 
                   value={formData.precio_costo}
                   onChange={(e) => {
-                    const costo = Number(e.target.value);
+                    const costo = e.target.value === '' ? '' : Number(e.target.value);
                     setFormData({
                        ...formData, 
                        precio_costo: costo, 
-                       precio_venta: costo > 0 ? Math.ceil(costo / 0.80) : formData.precio_venta
+                       precio_venta: (costo !== '' && costo > 0) ? Math.ceil(costo / 0.80) : formData.precio_venta
                     });
                   }}
                   required
@@ -217,7 +226,7 @@ export default function Productos() {
                   type="number" step="0.01" min="0"
                   className="form-control" 
                   value={formData.precio_venta}
-                  onChange={(e) => setFormData({...formData, precio_venta: Number(e.target.value)})}
+                  onChange={(e) => setFormData({...formData, precio_venta: e.target.value === '' ? '' : Number(e.target.value)})}
                   required
                 />
               </div>
@@ -226,8 +235,8 @@ export default function Productos() {
                 <input 
                   type="number" min="0"
                   className="form-control" 
-                  value={formData.stock || 0}
-                  onChange={(e) => setFormData({...formData, stock: Number(e.target.value)})}
+                  value={formData.stock}
+                  onChange={(e) => setFormData({...formData, stock: e.target.value === '' ? '' : Number(e.target.value)})}
                   required
                 />
               </div>
@@ -237,7 +246,7 @@ export default function Productos() {
                   type="number" min="0"
                   className="form-control" 
                   value={formData.stock_minimo}
-                  onChange={(e) => setFormData({...formData, stock_minimo: Number(e.target.value)})}
+                  onChange={(e) => setFormData({...formData, stock_minimo: e.target.value === '' ? '' : Number(e.target.value)})}
                   required
                 />
               </div>

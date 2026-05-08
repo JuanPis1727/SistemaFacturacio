@@ -5,7 +5,7 @@ export const saveCierreDia = async (req, res) => {
   let pool;
   let transaction;
   try {
-    const { facturas, ajustes, total_facturas, total_ajustes, total_final } = req.body;
+    const { facturas, ajustes, total_facturas, total_ajustes, total_final, usuario_id, usuario_nombre, usuario_rol } = req.body;
     
     pool = await getConnection();
     transaction = new sql.Transaction(pool);
@@ -21,9 +21,12 @@ export const saveCierreDia = async (req, res) => {
       .input('total_facturas', sql.Decimal(15, 2), total_facturas)
       .input('total_ajustes', sql.Decimal(15, 2), total_ajustes)
       .input('total_final', sql.Decimal(15, 2), total_final)
+      .input('usuario_id', sql.Int, usuario_id || null)
+      .input('usuario_nombre', sql.VarChar, usuario_nombre || null)
+      .input('usuario_rol', sql.VarChar, usuario_rol || null)
       .query(`
-        INSERT INTO cierres_dia (id, fecha, total_facturas, total_ajustes, total_final)
-        VALUES (@id, @fecha, @total_facturas, @total_ajustes, @total_final)
+        INSERT INTO cierres_dia (id, fecha, total_facturas, total_ajustes, total_final, usuario_id, usuario_nombre, usuario_rol)
+        VALUES (@id, @fecha, @total_facturas, @total_ajustes, @total_final, @usuario_id, @usuario_nombre, @usuario_rol)
       `);
 
     // 2. Insertar las facturas relacionadas

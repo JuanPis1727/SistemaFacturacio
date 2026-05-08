@@ -34,8 +34,14 @@ export default function Usuarios() {
       setShowModal(false);
       loadUsuarios();
       setFormData({ id: null, nombre: '', email: '', password: '', rol: 'empleado' });
+      window.Swal.fire({
+        title: formData.id ? 'Empleado actualizado' : 'Empleado creado',
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false
+      });
     } else {
-      alert(res.message);
+      window.Swal.fire('Error', res.message, 'error');
     }
     setLoading(false);
   };

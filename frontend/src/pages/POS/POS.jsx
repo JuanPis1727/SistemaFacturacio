@@ -500,9 +500,9 @@ export default function POS() {
               )}
             </div>
 
-            <div className="invoice-actions no-print" style={{ marginBottom: '2rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+            <div className="invoice-actions no-print" style={{ marginBottom: '2rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'center' }}>
               <button onClick={() => window.print()} className="primary-btn" style={{ background: '#3b82f6', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Printer size={18} /> Imprimir / PDF
+                <Printer size={18} /> Imprimir Ticket
               </button>
               <button onClick={() => { 
                 setStep('CART'); 
@@ -519,9 +519,16 @@ export default function POS() {
                 <ArrowLeft size={18} /> Volver a Inicio
               </button>
             </div>
+            
+            <p className="no-print" style={{ textAlign: 'center', fontSize: '0.85rem', color: '#64748b', marginBottom: '1rem' }}>
+              * Si tu impresora tiene configurado el cajón monedero, este se abrirá automáticamente al imprimir.
+            </p>
 
             {/* Este es el Ticket Térmico Nativo */}
             <div id="print-area" className="print-area" style={{ background: '#fff', color: '#000', padding: '20px', borderRadius: '8px', width: '300px', margin: '0 auto', fontSize: '12px', fontFamily: 'monospace' }}>
+              {/* Carácter de control oculto para forzar apertura de cajón en algunas impresoras ESC/POS genéricas */}
+              <div style={{ fontFamily: 'control', color: 'transparent', fontSize: '1px', lineHeight: '1px' }}>A</div>
+
               <div style={{ textAlign: 'center', marginBottom: '15px' }}>
                 <h3 style={{ margin: 0, fontSize: '16px' }}>TICKET DE VENTA</h3>
                 <p style={{ margin: 0 }}>Nº {currentInvoice.numero}</p>

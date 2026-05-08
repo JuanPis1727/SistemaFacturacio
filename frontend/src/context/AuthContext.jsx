@@ -31,6 +31,8 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
+    localStorage.removeItem('cierresDia_facturas');
+    localStorage.removeItem('cierresDia_ajustes');
     setToken(null);
     setUser(null);
   };

@@ -19,12 +19,14 @@ import configuracionRoutes from './src/routes/configuracionRoutes.js';
 import proveedoresRoutes from './src/routes/proveedoresRoutes.js';
 import cierresDiaRoutes from './src/routes/cierresDiaRoutes.js';
 import { verificarToken } from './src/middlewares/authMiddleware.js';
+import helmet from 'helmet';
 
 dotenv.config();
 
 const app = express();
 
 // Middlewares
+app.use(helmet());
 app.use(cors());
 app.use(express.json());
 

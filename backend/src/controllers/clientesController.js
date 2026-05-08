@@ -75,9 +75,19 @@ export const anularCliente = async (req, res) => {
   try {
     const { id } = req.params;
     const pool = await getConnection();
+    
+    // Permitir NULL si no estaba habilitado
+    try { await pool.request().query('ALTER TABLE facturas ALTER COLUMN cliente_id INT NULL'); } catch(e){}
+    try { await pool.request().query('ALTER TABLE abonos ALTER COLUMN cliente_id INT NULL'); } catch(e){}
+
+    // Desvincular de facturas y abonos para no corromper el historial
+    await pool.request().input('id', sql.Int, id).query('UPDATE facturas SET cliente_id = NULL WHERE cliente_id = @id');
+    await pool.request().input('id', sql.Int, id).query('UPDATE abonos SET cliente_id = NULL WHERE cliente_id = @id');
+
     await pool.request()
       .input('id', sql.Int, id)
       .query('DELETE FROM clientes WHERE id = @id');
+      
     res.json({ success: true, message: 'Cliente eliminado' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error al anular cliente', error: error.message });
