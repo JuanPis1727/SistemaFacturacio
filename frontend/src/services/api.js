@@ -1,5 +1,4 @@
-const API_URL = 'http://54.88.221.69:4000/api';
-
+const API_URL = `${window.location.protocol}//${window.location.hostname}:4000/api`;
 export const fetchAPI = async (endpoint, optionsOrMethod = {}, bodyContent = null) => {
   const token = localStorage.getItem('token');
   
