@@ -125,14 +125,14 @@ const CierresDia = () => {
           <tbody>
             {cierres.filter(cierre => {
               if (!fechaFiltro) return true;
-              const cierreDate = new Date(cierre.fecha);
+              const cierreDate = new Date(cierre.creado_en || cierre.fecha);
               // Format to YYYY-MM-DD
               const formattedDate = cierreDate.getFullYear() + '-' + String(cierreDate.getMonth() + 1).padStart(2, '0') + '-' + String(cierreDate.getDate()).padStart(2, '0');
               return formattedDate === fechaFiltro;
             }).map((cierre) => (
               <tr key={cierre.id}>
                 <td>{cierre.id}</td>
-                <td>{new Date(cierre.fecha).toLocaleString()}</td>
+                <td>{new Date(cierre.creado_en || cierre.fecha).toLocaleString()}</td>
                 <td>${cierre.total_facturacion?.toLocaleString() || 0}</td>
                 <td>${cierre.efectivo_manual?.toLocaleString() || 0}</td>
                 <td>{cierre.facturas_procesadas || 0}</td>
@@ -149,7 +149,7 @@ const CierresDia = () => {
             ))}
             {cierres.length > 0 && cierres.filter(cierre => {
               if (!fechaFiltro) return true;
-              const cierreDate = new Date(cierre.fecha);
+              const cierreDate = new Date(cierre.creado_en || cierre.fecha);
               const formattedDate = cierreDate.getFullYear() + '-' + String(cierreDate.getMonth() + 1).padStart(2, '0') + '-' + String(cierreDate.getDate()).padStart(2, '0');
               return formattedDate === fechaFiltro;
             }).length === 0 && (

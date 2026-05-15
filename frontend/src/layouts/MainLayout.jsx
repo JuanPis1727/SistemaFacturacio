@@ -97,11 +97,6 @@ export default function MainLayout() {
             <span>Historial Ventas</span>
           </NavLink>
 
-          <NavLink to="/cierres" onClick={closeMobileMenu} className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
-            <Calculator size={20} />
-            <span>Venta del Día</span>
-          </NavLink>
-
           <NavLink to="/cierres-dia" onClick={closeMobileMenu} className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
             <FileText size={20} />
             <span>Cierre del Día</span>
