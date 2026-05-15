@@ -9,6 +9,7 @@ import Productos from './pages/Productos/Productos';
 import Clientes from './pages/Clientes/Clientes';
 import Historial from './pages/Historial/Historial';
 import Inventario from './pages/Inventario/Inventario';
+import Abonos from './pages/Abonos/Abonos';
 import Usuarios from './pages/Usuarios/Usuarios';
 import Proveedores from './pages/Proveedores/Proveedores';
 import CierresDia from './pages/CierresDia/CierresDia';
