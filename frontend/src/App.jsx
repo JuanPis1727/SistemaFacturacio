@@ -9,10 +9,7 @@ import Productos from './pages/Productos/Productos';
 import Clientes from './pages/Clientes/Clientes';
 import Historial from './pages/Historial/Historial';
 import Inventario from './pages/Inventario/Inventario';
-import Cierres from './pages/Cierres/Cierres';
-import Abonos from './pages/Abonos/Abonos';
 import Usuarios from './pages/Usuarios/Usuarios';
-import Configuracion from './pages/Configuracion/Configuracion';
 import Proveedores from './pages/Proveedores/Proveedores';
 import CierresDia from './pages/CierresDia/CierresDia';
 
@@ -53,12 +50,10 @@ function App() {
               <Route path="/inventario" element={<Inventario />} />
               <Route path="/abonos" element={<Abonos />} />
               <Route path="/usuarios" element={<AdminRoute><Usuarios /></AdminRoute>} />
-              <Route path="/configuracion" element={<AdminRoute><Configuracion /></AdminRoute>} />
               <Route path="/proveedores" element={<AdminRoute><Proveedores /></AdminRoute>} />
               <Route path="/cierres-dia" element={<CierresDia />} />
               
               <Route path="/historial" element={<Historial />} />
-              <Route path="/cierres" element={<Cierres />} />
             </Route>
 
           </Routes>

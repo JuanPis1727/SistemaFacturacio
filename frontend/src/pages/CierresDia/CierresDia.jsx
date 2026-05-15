@@ -10,6 +10,7 @@ const CierresDia = () => {
   const [showModal, setShowModal] = useState(false);
   const [efectivoManual, setEfectivoManual] = useState('');
   const [notas, setNotas] = useState('');
+  const [fechaFiltro, setFechaFiltro] = useState('');
 
   // Cargar historial de cierres
   useEffect(() => {
@@ -84,14 +85,26 @@ const CierresDia = () => {
 
   return (
     <div className="cierres-dia-container">
-      <div className="header">
+      <div className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <h1>Historial de Cierres</h1>
-        <button 
-          className="btn-primary"
-          onClick={() => setShowModal(true)}
-        >
-          Nuevo Cierre
-        </button>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <label style={{ fontWeight: 'bold' }}>Filtrar por fecha:</label>
+          <input 
+            type="date" 
+            value={fechaFiltro}
+            onChange={(e) => setFechaFiltro(e.target.value)}
+            style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+          />
+          {fechaFiltro && (
+            <button className="btn-secondary" onClick={() => setFechaFiltro('')}>Limpiar</button>
+          )}
+          <button 
+            className="btn-primary"
+            onClick={() => setShowModal(true)}
+          >
+            Nuevo Cierre
+          </button>
+        </div>
       </div>
 
       {error && <div className="error-message">{error}</div>}
@@ -110,7 +123,13 @@ const CierresDia = () => {
             </tr>
           </thead>
           <tbody>
-            {cierres.map((cierre) => (
+            {cierres.filter(cierre => {
+              if (!fechaFiltro) return true;
+              const cierreDate = new Date(cierre.fecha);
+              // Format to YYYY-MM-DD
+              const formattedDate = cierreDate.getFullYear() + '-' + String(cierreDate.getMonth() + 1).padStart(2, '0') + '-' + String(cierreDate.getDate()).padStart(2, '0');
+              return formattedDate === fechaFiltro;
+            }).map((cierre) => (
               <tr key={cierre.id}>
                 <td>{cierre.id}</td>
                 <td>{new Date(cierre.fecha).toLocaleString()}</td>
@@ -128,6 +147,14 @@ const CierresDia = () => {
                 </td>
               </tr>
             ))}
+            {cierres.length > 0 && cierres.filter(cierre => {
+              if (!fechaFiltro) return true;
+              const cierreDate = new Date(cierre.fecha);
+              const formattedDate = cierreDate.getFullYear() + '-' + String(cierreDate.getMonth() + 1).padStart(2, '0') + '-' + String(cierreDate.getDate()).padStart(2, '0');
+              return formattedDate === fechaFiltro;
+            }).length === 0 && (
+              <tr><td colSpan="7" style={{textAlign: 'center', padding: '1rem'}}>No hay cierres para esta fecha.</td></tr>
+            )}
           </tbody>
         </table>
       </div>

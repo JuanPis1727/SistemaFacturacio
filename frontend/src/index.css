@@ -241,8 +241,47 @@ body {
   color: #94a3b8;
 }
 
-/* --- PRINT MEDIA QUERIES (Tickets / Facturas) --- */
+/* --- RESPONSIVE TABLES & MODALS --- */
+.crud-table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
+}
+
+.crud-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+@media (max-width: 768px) {
+  .crud-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 1rem;
+  }
+  .crud-header > div, .crud-header button {
+    width: 100%;
+  }
+  .modal-content {
+    width: 95%;
+    margin: 10px auto;
+    padding: 1.5rem;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .primary-btn, .secondary-btn, .btn-cancel {
+    padding: 10px 16px;
+    font-size: 0.95rem;
+  }
+}
+
+/* --- PRINT MEDIA QUERIES (Tickets / Facturas 80mm) --- */
 @media print {
+  @page {
+    margin: 0;
+    size: 80mm 297mm;
+  }
+
   /* Ocultar elementos de UI general */
   body {
     background: white !important;
@@ -273,11 +312,13 @@ body {
     position: absolute;
     left: 0;
     top: 0;
-    width: 300px !important; /* Ticket Width */
+    width: 75mm !important; /* Ajuste para rollo de 80mm dejando un pequeño margen */
+    max-width: 80mm !important;
     background: white !important;
     color: black !important;
-    margin: 0 !important;
-    padding: 10px !important;
+    margin: 0 auto !important;
+    padding: 2mm !important;
+    font-size: 11px !important;
   }
 
   body * {

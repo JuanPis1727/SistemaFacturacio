@@ -12,6 +12,12 @@ export default function Productos() {
   const [formData, setFormData] = useState({ nombre: '', codigo: '', tipo: 'producto', descripcion: '', precio_costo: '', precio_venta: '', stock: '', stock_minimo: '' });
   const [editId, setEditId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   useEffect(() => {
     cargarProductos();
@@ -20,7 +26,11 @@ export default function Productos() {
   const cargarProductos = async () => {
     setLoading(true);
     const res = await fetchAPI('/productos');
-    if (res.success) setProductos(res.data);
+    if (res.success) {
+      // Orden LIFO (último agregado primero)
+      const sortedData = res.data.sort((a, b) => b.id - a.id);
+      setProductos(sortedData);
+    }
     setLoading(false);
   };
 
@@ -104,6 +114,20 @@ export default function Productos() {
     );
   });
 
+  // Paginación
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredProductos.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredProductos.length / itemsPerPage);
+
+  const nextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
   return (
     <div className="crud-container">
       <div className="crud-header">
@@ -135,7 +159,7 @@ export default function Productos() {
             </tr>
           </thead>
           <tbody>
-            {filteredProductos.map(p => (
+            {currentItems.map(p => (
               <tr key={p.id}>
                 <td style={{fontFamily: 'monospace'}}>{p.codigo}</td>
                 <td>{p.nombre}</td>
@@ -161,6 +185,18 @@ export default function Productos() {
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="pagination-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '1rem', marginBottom: '2rem' }}>
+          <button onClick={prevPage} disabled={currentPage === 1} className="primary-btn" style={{ background: currentPage === 1 ? '#ccc' : '#3b82f6', color: 'white', padding: '8px 16px' }}>
+            &laquo; Anterior
+          </button>
+          <span style={{ fontWeight: 'bold' }}>Página {currentPage} de {totalPages}</span>
+          <button onClick={nextPage} disabled={currentPage === totalPages} className="primary-btn" style={{ background: currentPage === totalPages ? '#ccc' : '#3b82f6', color: 'white', padding: '8px 16px' }}>
+            Siguiente &raquo;
+          </button>
+        </div>
+      )}
 
       {isModalOpen && (
         <div className="modal-overlay">

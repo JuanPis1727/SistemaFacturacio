@@ -10,6 +10,12 @@ export default function Historial() {
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, fechaInicio, fechaFin]);
 
   useEffect(() => {
     cargarFacturas();
@@ -18,7 +24,11 @@ export default function Historial() {
   const cargarFacturas = async () => {
     setLoading(true);
     const res = await fetchAPI('/facturas');
-    if (res.success) setFacturas(res.data);
+    if (res.success) {
+      // Orden LIFO (más recientes primero)
+      const sortedData = res.data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha) || b.id - a.id);
+      setFacturas(sortedData);
+    }
     setLoading(false);
   };
 
@@ -51,14 +61,30 @@ export default function Historial() {
     
     // Global filter
     if (searchTerm) {
-      const match = Object.values(f).some(val => 
-         val && String(val).toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      const term = searchTerm.toLowerCase();
+      const match = (f.numero && String(f.numero).toLowerCase().includes(term)) ||
+                    (f.cliente_nombre && String(f.cliente_nombre).toLowerCase().includes(term)) ||
+                    (f.total && String(f.total).includes(term)) ||
+                    (f.estado && String(f.estado).toLowerCase().includes(term));
       if (!match) return false;
     }
 
     return true;
   });
+
+  // Paginación
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = facturasFiltradas.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(facturasFiltradas.length / itemsPerPage);
+
+  const nextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
 
   return (
     <div className="crud-container">
@@ -101,7 +127,7 @@ export default function Historial() {
             </tr>
           </thead>
           <tbody>
-            {facturasFiltradas.map(f => (
+            {currentItems.map(f => (
               <tr key={f.id}>
                 <td style={{fontFamily: 'monospace'}}>{f.numero}</td>
                 <td>{new Date(f.fecha).toLocaleString()}</td>
@@ -125,11 +151,23 @@ export default function Historial() {
               </tr>
             ))}
             {facturasFiltradas.length === 0 && !loading && (
-               <tr><td colSpan="6" style={{textAlign:'center', padding: '2rem'}}>No hay facturas en este rango de fechas.</td></tr>
+               <tr><td colSpan="6" style={{textAlign:'center', padding: '2rem'}}>No hay facturas en este rango de fechas o búsqueda.</td></tr>
             )}
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="pagination-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '1rem', marginBottom: '2rem' }}>
+          <button onClick={prevPage} disabled={currentPage === 1} className="primary-btn" style={{ background: currentPage === 1 ? '#ccc' : '#3b82f6', color: 'white', padding: '8px 16px' }}>
+            &laquo; Anterior
+          </button>
+          <span style={{ fontWeight: 'bold' }}>Página {currentPage} de {totalPages}</span>
+          <button onClick={nextPage} disabled={currentPage === totalPages} className="primary-btn" style={{ background: currentPage === totalPages ? '#ccc' : '#3b82f6', color: 'white', padding: '8px 16px' }}>
+            Siguiente &raquo;
+          </button>
+        </div>
+      )}
 
       {facturaSeleccionada && (
         <div className="modal-overlay">
