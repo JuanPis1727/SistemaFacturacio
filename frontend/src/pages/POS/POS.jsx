@@ -310,7 +310,7 @@ export default function POS() {
       monto_entregado: checkoutData.metodo_pago === 'Efectivo' ? Number(checkoutData.monto_entregado) : total,
       cambio: checkoutData.metodo_pago === 'Efectivo' ? cambio : 0,
       items: cart.map(c => ({
-        producto_id: c.isDeuda ? null : (c.original_id || c.id),
+        producto_id: (c.isDeuda || c.isManual) ? null : (c.original_id || c.id),
         descripcion: c.nombre,
         cantidad: c.cantidad,
         precio_unitario: c.precio_venta,
