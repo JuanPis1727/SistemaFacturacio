@@ -153,7 +153,7 @@ export default function POS() {
     let precioUnitario = producto.precio_venta;
 
     // Si el producto se vende por peso
-    if (producto.por_peso == 1) {
+    if (producto.por_peso && Number(producto.por_peso) !== 0) {
       const { value: pesoStr } = await window.Swal.fire({
         title: `Venta por Peso: ${producto.nombre}`,
         input: 'number',
@@ -172,6 +172,7 @@ export default function POS() {
 
       if (!pesoStr) return; // Se canceló
       cantidadAAgregar = Number(pesoStr);
+      precioUnitario = producto.precio_costo; // Multiplicar por precio de costo según lo solicitado
     }
 
     setCart(prevCart => {

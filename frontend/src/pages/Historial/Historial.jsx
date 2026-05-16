@@ -63,6 +63,7 @@ export default function Historial() {
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       const match = (f.numero && String(f.numero).toLowerCase().includes(term)) ||
+                    (f.id && String(f.id).includes(term)) ||
                     (f.cliente_nombre && String(f.cliente_nombre).toLowerCase().includes(term)) ||
                     (f.total && String(f.total).includes(term)) ||
                     (f.estado && String(f.estado).toLowerCase().includes(term));

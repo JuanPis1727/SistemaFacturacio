@@ -27,7 +27,7 @@ export const getProductoById = async (req, res) => {
 
 export const createProducto = async (req, res) => {
   try {
-    const { nombre, codigo, tipo, descripcion, precio_costo, precio_venta, stock, stock_minimo } = req.body;
+    const { nombre, codigo, tipo, descripcion, precio_costo, precio_venta, stock, stock_minimo, por_peso } = req.body;
     const pool = await getConnection();
 
     if (codigo) {
@@ -48,10 +48,11 @@ export const createProducto = async (req, res) => {
       .input('precio_venta', sql.Decimal(14,2), precio_venta || 0)
       .input('stock', sql.Int, stock || 0)
       .input('stock_minimo', sql.Int, stock_minimo || 0)
+      .input('por_peso', sql.Decimal(1,0), por_peso || 0)
       .query(`
-        INSERT INTO productos (nombre, codigo, tipo, descripcion, precio_costo, precio_venta, stock, stock_minimo) 
+        INSERT INTO productos (nombre, codigo, tipo, descripcion, precio_costo, precio_venta, stock, stock_minimo, por_peso) 
         OUTPUT INSERTED.id 
-        VALUES (@nombre, @codigo, @tipo, @descripcion, @precio_costo, @precio_venta, @stock, @stock_minimo)
+        VALUES (@nombre, @codigo, @tipo, @descripcion, @precio_costo, @precio_venta, @stock, @stock_minimo, @por_peso)
       `);
     res.status(201).json({ success: true, message: 'Producto creado', id: result.recordset[0].id });
   } catch (error) {
@@ -62,7 +63,7 @@ export const createProducto = async (req, res) => {
 export const updateProducto = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, codigo, tipo, descripcion, precio_costo, precio_venta, stock, stock_minimo } = req.body;
+    const { nombre, codigo, tipo, descripcion, precio_costo, precio_venta, stock, stock_minimo, por_peso } = req.body;
     const pool = await getConnection();
 
     if (codigo) {
@@ -85,10 +86,11 @@ export const updateProducto = async (req, res) => {
       .input('precio_venta', sql.Decimal(14,2), precio_venta || 0)
       .input('stock_minimo', sql.Int, stock_minimo || 0)
       .input('stock', sql.Int, stock || 0)
+      .input('por_peso', sql.Decimal(1,0), por_peso || 0)
       .query(`
         UPDATE productos 
         SET nombre = @nombre, codigo = @codigo, tipo = @tipo, descripcion = @descripcion, 
-            precio_costo = @precio_costo, precio_venta = @precio_venta, stock = @stock, stock_minimo = @stock_minimo
+            precio_costo = @precio_costo, precio_venta = @precio_venta, stock = @stock, stock_minimo = @stock_minimo, por_peso = @por_peso
         WHERE id = @id
       `);
     res.json({ success: true, message: 'Producto actualizado' });
