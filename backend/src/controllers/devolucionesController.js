@@ -27,19 +27,9 @@ export const procesarDevolucion = async (req, res) => {
     await transaction.begin();
     
     try {
-      // 2. Incrementar stock usando inventario_entradas (esto dispara el trigger de inventario)
-      const reqEntrada = new sql.Request(transaction);
-      await reqEntrada
-        .input('producto_id', sql.Int, producto_id)
-        .input('usuario_id', sql.Int, usuario_id || null)
-        .input('cantidad', sql.Int, cantidad)
-        .input('precio_costo', sql.Decimal(14,2), producto.precio_costo)
-        .input('proveedor', sql.VarChar, 'Cliente (Devolución)')
-        .input('notas', sql.VarChar, descripcion || 'Devolución en Punto de Venta')
-        .query(`
-          INSERT INTO inventario_entradas (producto_id, usuario_id, cantidad, precio_costo, proveedor, notas)
-          VALUES (@producto_id, @usuario_id, @cantidad, @precio_costo, @proveedor, @notas);
-        `);
+      // NOTA: No insertamos en inventario_entradas porque la base de datos ya tiene un trigger
+      // en la tabla factura_items que al insertar una cantidad negativa (-cantidad) 
+      // automáticamente suma esa cantidad al stock. Hacerlo en ambas tablas duplicaba la devolución.
 
       // 3. Crear factura negativa para restar del Dashboard
       const reqFactura = new sql.Request(transaction);

@@ -173,8 +173,8 @@ export default function POS() {
       if (!pesoStr) return; // Se canceló
       
       const pesoKg = Number(pesoStr);
-      // El usuario pidió multiplicar por el precio de costo en el mensaje anterior
-      const precioPorBandeja = pesoKg * producto.precio_costo; 
+      // Se utiliza precio_venta para el cobro final
+      const precioPorBandeja = pesoKg * producto.precio_venta; 
 
       // Se agrega como un ítem único de 1 unidad (para descontar 1 del stock)
       setCart(prevCart => [
