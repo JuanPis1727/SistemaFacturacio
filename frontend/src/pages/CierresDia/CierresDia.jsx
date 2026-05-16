@@ -25,6 +25,7 @@ export default function CierresDia() {
   // Tab 2: Historial
   const [historial, setHistorial] = useState([]);
   const [filtroMes, setFiltroMes] = useState('');
+  const [filtroFecha, setFiltroFecha] = useState('');
   const [filtroProveedor, setFiltroProveedor] = useState('');
   const [expandedId, setExpandedId] = useState(null);
   
@@ -166,6 +167,9 @@ export default function CierresDia() {
     let filtrado = [...historial];
     if (filtroMes) {
       filtrado = filtrado.filter(c => c.fecha.split('-')[1] === filtroMes);
+    }
+    if (filtroFecha) {
+      filtrado = filtrado.filter(c => c.fecha.startsWith(filtroFecha));
     }
     if (filtroProveedor) {
       filtrado = filtrado.filter(c => c.facturas.some(f => f.proveedor_id === filtroProveedor));
@@ -314,12 +318,17 @@ export default function CierresDia() {
            <div className="filtros-card card shadow-sm" style={{ padding: '1.5rem', background: 'white', borderRadius: '12px', marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
              <div style={{ flex: 1, minWidth: '200px' }}>
                <label style={{ display: 'block', marginBottom: '5px', color: '#64748b', fontSize: '0.9rem' }}>Filtro por Mes</label>
-               <select className="form-control" value={filtroMes} onChange={(e) => setFiltroMes(e.target.value)}>
+               <select className="form-control" value={filtroMes} onChange={(e) => { setFiltroMes(e.target.value); setFiltroFecha(''); }}>
                  <option value="">Todos los meses</option>
                  {meses.map(m => <option key={m.num} value={m.num}>{m.nombre}</option>)}
                </select>
              </div>
              
+             <div style={{ flex: 1, minWidth: '200px' }}>
+               <label style={{ display: 'block', marginBottom: '5px', color: '#64748b', fontSize: '0.9rem' }}>Filtro por Día Exacto</label>
+               <input type="date" className="form-control" value={filtroFecha} onChange={(e) => { setFiltroFecha(e.target.value); setFiltroMes(''); }} />
+             </div>
+
              <div style={{ flex: 1, minWidth: '200px' }}>
                <label style={{ display: 'block', marginBottom: '5px', color: '#64748b', fontSize: '0.9rem' }}>Filtro por Proveedor</label>
                <select className="form-control" value={filtroProveedor} onChange={(e) => setFiltroProveedor(e.target.value)}>
@@ -328,7 +337,7 @@ export default function CierresDia() {
                </select>
              </div>
 
-             {(filtroMes || filtroProveedor) && (
+             {(filtroMes || filtroFecha || filtroProveedor) && (
                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', padding: '1rem', borderRadius: '8px', marginLeft: 'auto', minWidth: '250px' }}>
                   <p style={{ margin: 0, fontSize: '0.9rem', color: '#1d4ed8' }}>Cálculo Inteligente:</p>
                   <strong style={{ fontSize: '1.2rem', color: '#1e40af' }}>Total: ${totalFiltrado?.toLocaleString() || 0}</strong>

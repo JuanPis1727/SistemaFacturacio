@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, ShoppingCart, Box, Users, CreditCard, LogOut, PackagePlus, Calculator, PiggyBank, UserCog, Settings, Menu, X, Truck, FileText } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Box, Users, CreditCard, LogOut, PackagePlus, Calculator, PiggyBank, UserCog, Settings, Menu, X, Truck, FileText, ArrowLeftRight } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { fetchAPI } from '../services/api';
 import './MainLayout.css';
@@ -36,7 +36,7 @@ export default function MainLayout() {
       case '/proveedores': return 'Gestión de Proveedores';
       case '/cierres-dia': return 'Cierre del Día';
       case '/usuarios': return 'Gestión de Personal';
-      case '/configuracion': return 'Configuración de Empresa';
+      case '/devoluciones': return 'Módulo de Devoluciones';
       default: return 'JIZFact';
     }
   };
@@ -114,10 +114,10 @@ export default function MainLayout() {
                 <UserCog size={20} />
                 <span>Usuarios</span>
               </NavLink>
-              
-              <NavLink to="/configuracion" onClick={closeMobileMenu} className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
-                <Settings size={20} />
-                <span>Configuración</span>
+
+              <NavLink to="/devoluciones" onClick={closeMobileMenu} className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+                <ArrowLeftRight size={20} />
+                <span>Devoluciones</span>
               </NavLink>
             </>
           )}

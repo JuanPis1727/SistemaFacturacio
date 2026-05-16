@@ -59,6 +59,49 @@ export default function POS() {
     if (resCli.success) setClientesMemo(resCli.data);
   };
 
+  useEffect(() => {
+    const handleGlobalKeyDown = async (e) => {
+      if (e.key === '+' && step === 'CART') {
+        e.preventDefault();
+        const { value: valorStr } = await window.Swal.fire({
+          title: 'Agregar Valor Manual',
+          input: 'number',
+          inputLabel: 'Ingrese el valor a cobrar',
+          inputPlaceholder: 'Ej: 5000',
+          showCancelButton: true,
+          confirmButtonText: 'Agregar',
+          cancelButtonText: 'Cancelar',
+          inputValidator: (value) => {
+            if (!value || isNaN(value) || Number(value) <= 0) {
+              return 'Por favor ingrese un valor válido';
+            }
+          }
+        });
+
+        if (valorStr) {
+          const valor = Number(valorStr);
+          setCart(prev => [
+            ...prev,
+            {
+              id: 'MANUAL_' + Date.now(),
+              nombre: 'Varios',
+              codigo: 'MANUAL',
+              precio_venta: valor,
+              stock: 9999, // stock infinito para items manuales
+              cantidad: 1,
+              subtotal: valor,
+              isManual: true
+            }
+          ]);
+          showToast('✅ Ítem manual agregado');
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [step]);
+
   const handleCodigoChange = (e) => {
     const val = e.target.value;
     setCodigo(val);
@@ -82,16 +125,16 @@ export default function POS() {
     }
   };
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = async (e) => {
     if (e.key === 'Enter' && codigo.trim() !== '') {
       e.preventDefault();
       const matchExacto = productosMemo.find(p => p.codigo === codigo.trim());
       if (matchExacto) {
-        agregarAlCarrito(matchExacto);
+        await agregarAlCarrito(matchExacto);
         setCodigo('');
         setSugerenciasProd([]);
       } else if (sugerenciasProd.length > 0) {
-        agregarAlCarrito(sugerenciasProd[0]);
+        await agregarAlCarrito(sugerenciasProd[0]);
         setCodigo('');
         setSugerenciasProd([]);
       } else {
@@ -100,26 +143,51 @@ export default function POS() {
     }
   };
 
-  const agregarAlCarrito = (producto) => {
+  const agregarAlCarrito = async (producto) => {
     if (producto.stock <= 0) {
       showToast(`⚠️ No se puede agregar "${producto.nombre}" porque el stock es 0.`);
       return;
     }
 
+    let cantidadAAgregar = 1;
+    let precioUnitario = producto.precio_venta;
+
+    // Si el producto se vende por peso
+    if (producto.por_peso == 1) {
+      const { value: pesoStr } = await window.Swal.fire({
+        title: `Venta por Peso: ${producto.nombre}`,
+        input: 'number',
+        inputLabel: 'Ingrese el peso en Kg (Ej: 1.5)',
+        inputPlaceholder: 'Ej: 1.5',
+        showCancelButton: true,
+        confirmButtonText: 'Agregar',
+        cancelButtonText: 'Cancelar',
+        inputAttributes: { step: '0.01' },
+        inputValidator: (value) => {
+          if (!value || isNaN(value) || Number(value) <= 0) {
+            return 'Por favor ingrese un peso válido';
+          }
+        }
+      });
+
+      if (!pesoStr) return; // Se canceló
+      cantidadAAgregar = Number(pesoStr);
+    }
+
     setCart(prevCart => {
       const exists = prevCart.find(item => item.id === producto.id);
       if (exists) {
-        if (exists.cantidad + 1 > producto.stock) {
-          showToast(`⚠️ Solo quedan ${producto.stock} unidades disponibles.`);
+        if (exists.cantidad + cantidadAAgregar > producto.stock) {
+          showToast(`⚠️ Solo quedan ${producto.stock} unidades/Kg disponibles.`);
           return prevCart;
         }
         return prevCart.map(item =>
           item.id === producto.id
-            ? { ...item, cantidad: item.cantidad + 1, subtotal: (item.cantidad + 1) * item.precio_venta }
+            ? { ...item, cantidad: item.cantidad + cantidadAAgregar, subtotal: (item.cantidad + cantidadAAgregar) * precioUnitario }
             : item
         );
       }
-      return [...prevCart, { ...producto, cantidad: 1, subtotal: producto.precio_venta }];
+      return [...prevCart, { ...producto, cantidad: cantidadAAgregar, precio_venta: precioUnitario, subtotal: cantidadAAgregar * precioUnitario }];
     });
   };
 
@@ -300,8 +368,8 @@ export default function POS() {
                   {sugerenciasProd.map(prod => (
                     <div key={prod.id}
                          style={{padding: '10px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}
-                         onClick={() => {
-                           agregarAlCarrito(prod);
+                         onClick={async () => {
+                           await agregarAlCarrito(prod);
                            setCodigo('');
                            setSugerenciasProd([]);
                            scannerInputRef.current?.focus();

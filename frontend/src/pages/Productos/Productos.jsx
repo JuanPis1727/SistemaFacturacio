@@ -9,7 +9,7 @@ export default function Productos() {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ nombre: '', codigo: '', tipo: 'producto', descripcion: '', precio_costo: '', precio_venta: '', stock: '', stock_minimo: '' });
+  const [formData, setFormData] = useState({ nombre: '', codigo: '', tipo: 'producto', descripcion: '', precio_costo: '', precio_venta: '', stock: '', stock_minimo: '', por_peso: 0 });
   const [editId, setEditId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -45,7 +45,8 @@ export default function Productos() {
       precio_costo: Number(formData.precio_costo) || 0,
       precio_venta: Number(formData.precio_venta) || 0,
       stock: Number(formData.stock) || 0,
-      stock_minimo: Number(formData.stock_minimo) || 0
+      stock_minimo: Number(formData.stock_minimo) || 0,
+      por_peso: formData.por_peso ? 1 : 0
     };
 
     const res = await fetchAPI(url, {
@@ -94,7 +95,8 @@ export default function Productos() {
       precio_costo: prod.precio_costo || '',
       precio_venta: prod.precio_venta || '',
       stock: prod.stock || '',
-      stock_minimo: prod.stock_minimo || ''
+      stock_minimo: prod.stock_minimo || '',
+      por_peso: prod.por_peso || 0
     });
     setEditId(prod.id);
     setIsModalOpen(true);
@@ -103,7 +105,7 @@ export default function Productos() {
   const cerrarModal = () => {
     setIsModalOpen(false);
     setEditId(null);
-    setFormData({ nombre: '', codigo: '', tipo: 'producto', descripcion: '', precio_costo: '', precio_venta: '', stock: '', stock_minimo: '' });
+    setFormData({ nombre: '', codigo: '', tipo: 'producto', descripcion: '', precio_costo: '', precio_venta: '', stock: '', stock_minimo: '', por_peso: 0 });
   };
 
   const filteredProductos = productos.filter(p => {
@@ -229,6 +231,17 @@ export default function Productos() {
                   <option value="producto">Producto (Físico)</option>
                   <option value="servicio">Servicio (Intangible)</option>
                 </select>
+              </div>
+              
+              <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#eff6ff', padding: '10px', borderRadius: '8px' }}>
+                <input 
+                  type="checkbox" 
+                  id="por_peso"
+                  checked={formData.por_peso == 1}
+                  onChange={(e) => setFormData({...formData, por_peso: e.target.checked ? 1 : 0})}
+                  style={{ width: '18px', height: '18px' }}
+                />
+                <label htmlFor="por_peso" style={{ margin: 0, color: '#1d4ed8', fontWeight: 'bold', cursor: 'pointer' }}>Venta por Peso (Kg)</label>
               </div>
               <div className="form-group">
                 <label>Descripción</label>

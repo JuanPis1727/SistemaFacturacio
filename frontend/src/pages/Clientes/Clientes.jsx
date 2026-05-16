@@ -12,10 +12,16 @@ export default function Clientes() {
   const [formData, setFormData] = useState({ nombre: '', cedula: '', email: '', telefono: '', direccion: '', deuda_inicial: '' });
   const [editId, setEditId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     cargarClientes();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const cargarClientes = async () => {
     setLoading(true);
@@ -96,6 +102,20 @@ export default function Clientes() {
     )
   );
 
+  // Paginación
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredClientes.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredClientes.length / itemsPerPage);
+
+  const nextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
   return (
     <div className="crud-container">
       <div className="crud-header">
@@ -127,7 +147,7 @@ export default function Clientes() {
             </tr>
           </thead>
           <tbody>
-            {filteredClientes.map(c => (
+            {currentItems.map(c => (
               <tr key={c.id}>
                 <td style={{fontFamily: 'monospace'}}>{c.cedula || '---'}</td>
                 <td style={{fontWeight: 500}}>{c.nombre}</td>
@@ -153,6 +173,18 @@ export default function Clientes() {
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="pagination-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '1rem', marginBottom: '2rem' }}>
+          <button onClick={prevPage} disabled={currentPage === 1} className="primary-btn" style={{ background: currentPage === 1 ? '#ccc' : '#3b82f6', color: 'white', padding: '8px 16px' }}>
+            &laquo; Anterior
+          </button>
+          <span style={{ fontWeight: 'bold' }}>Página {currentPage} de {totalPages}</span>
+          <button onClick={nextPage} disabled={currentPage === totalPages} className="primary-btn" style={{ background: currentPage === totalPages ? '#ccc' : '#3b82f6', color: 'white', padding: '8px 16px' }}>
+            Siguiente &raquo;
+          </button>
+        </div>
+      )}
 
       {isModalOpen && (
         <div className="modal-overlay">
