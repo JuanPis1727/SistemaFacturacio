@@ -156,7 +156,7 @@ export default function Devoluciones() {
                   value={cantidad}
                   onChange={(e) => setCantidad(e.target.value)}
                   min="0.01"
-                  step={productoSeleccionado.por_peso ? "0.01" : "1"}
+                  step="any"
                   required
                 />
               </div>

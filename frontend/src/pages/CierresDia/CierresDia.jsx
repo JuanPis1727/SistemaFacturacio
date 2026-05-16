@@ -169,7 +169,16 @@ export default function CierresDia() {
       filtrado = filtrado.filter(c => c.fecha.split('-')[1] === filtroMes);
     }
     if (filtroFecha) {
-      filtrado = filtrado.filter(c => c.fecha.startsWith(filtroFecha));
+      filtrado = filtrado.filter(c => {
+        if (!c.fecha) return false;
+        const fDate = new Date(c.fecha);
+        const filterDate = new Date(filtroFecha);
+        // Ajustar el offset de zona horaria porque el input type="date" genera UTC a medianoche
+        filterDate.setMinutes(filterDate.getMinutes() + filterDate.getTimezoneOffset());
+        return fDate.getFullYear() === filterDate.getFullYear() &&
+               fDate.getMonth() === filterDate.getMonth() &&
+               fDate.getDate() === filterDate.getDate();
+      });
     }
     if (filtroProveedor) {
       filtrado = filtrado.filter(c => c.facturas.some(f => f.proveedor_id === filtroProveedor));

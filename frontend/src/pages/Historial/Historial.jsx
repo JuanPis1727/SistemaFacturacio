@@ -130,7 +130,7 @@ export default function Historial() {
           <tbody>
             {currentItems.map(f => (
               <tr key={f.id}>
-                <td style={{fontFamily: 'monospace'}}>{f.numero}</td>
+                <td style={{fontFamily: 'monospace'}}>{f.numero || f.id}</td>
                 <td>{new Date(f.fecha).toLocaleString()}</td>
                 <td>{f.cliente_nombre || 'Consumidor Final'}</td>
                 <td style={{fontWeight: 'bold', color: '#10b981'}}>${f.total.toLocaleString()}</td>

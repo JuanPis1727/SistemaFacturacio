@@ -171,10 +171,28 @@ export default function POS() {
       });
 
       if (!pesoStr) return; // Se canceló
-      cantidadAAgregar = Number(pesoStr);
-      precioUnitario = producto.precio_costo; // Multiplicar por precio de costo según lo solicitado
+      
+      const pesoKg = Number(pesoStr);
+      // El usuario pidió multiplicar por el precio de costo en el mensaje anterior
+      const precioPorBandeja = pesoKg * producto.precio_costo; 
+
+      // Se agrega como un ítem único de 1 unidad (para descontar 1 del stock)
+      setCart(prevCart => [
+        ...prevCart, 
+        { 
+          ...producto, 
+          id: producto.id + '_peso_' + Date.now(), // ID único para no agrupar bandejas de distinto peso
+          original_id: producto.id, // Para descontar del producto real en la BD
+          nombre: `${producto.nombre} (${pesoKg} Kg)`,
+          cantidad: 1, // Descuenta 1 unidad de stock
+          precio_venta: precioPorBandeja, // El precio unitario de esta bandeja específica
+          subtotal: precioPorBandeja
+        }
+      ]);
+      return; // Terminamos aquí para no ejecutar la lógica normal de agrupación
     }
 
+    // Lógica normal para productos por unidad
     setCart(prevCart => {
       const exists = prevCart.find(item => item.id === producto.id);
       if (exists) {
@@ -292,7 +310,7 @@ export default function POS() {
       monto_entregado: checkoutData.metodo_pago === 'Efectivo' ? Number(checkoutData.monto_entregado) : total,
       cambio: checkoutData.metodo_pago === 'Efectivo' ? cambio : 0,
       items: cart.map(c => ({
-        producto_id: c.isDeuda ? null : c.id,
+        producto_id: c.isDeuda ? null : (c.original_id || c.id),
         descripcion: c.nombre,
         cantidad: c.cantidad,
         precio_unitario: c.precio_venta,
