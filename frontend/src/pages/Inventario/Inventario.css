@@ -18,10 +18,10 @@
   flex: 1;
   font-size: 1.2rem;
   padding: 1rem 1.5rem;
-  background: rgba(15, 23, 42, 0.6);
+  background: #ffffff;
   border: 2px solid var(--glass-border);
   border-radius: 12px;
-  color: white;
+  color: var(--text-dark);
   transition: all 0.2s;
 }
 

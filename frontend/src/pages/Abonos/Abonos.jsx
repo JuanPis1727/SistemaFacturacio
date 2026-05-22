@@ -225,30 +225,42 @@ export default function Abonos() {
            </div>
 
            {/* Lado Izquierdo: Facturas Pendientes (Para el detalle de crédito) */}
-           <div className="abono-form-card" style={{ margin: 0, background: '#f8fafc', boxShadow: 'none' }}>
-              <h3><History style={{display:'inline', marginRight:'8px'}}/> Facturas Pendientes ({facturasPendientes.length})</h3>
-              
-              {facturasPendientes.length === 0 ? (
-                 <p style={{color: 'var(--text-muted)'}}>No hay facturas vinculadas físicamente, pero tiene un saldo adeudado previo de ${clienteSeleccionado.deuda_total.toLocaleString()}.</p>
-              ) : (
-                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {facturasPendientes.map(fp => (
-                       <div key={fp.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#ffffff', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-                          <div>
-                             <div style={{fontFamily: 'monospace', color: '#0f172a', fontWeight: '600'}}>#{fp.numero}</div>
-                             <div style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>{new Date(fp.fecha).toLocaleDateString()}</div>
-                          </div>
-                             <div style={{display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '10px', marginTop: '5px'}}>
-                               <div style={{color: '#ef4444', fontWeight: 'bold'}}>${fp.total.toLocaleString()}</div>
-                               <button className="icon-btn edit" style={{padding: '6px', background: '#eff6ff', borderRadius: '50%', color: '#3b82f6', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'}} onClick={() => verDetalleFactura(fp.id)} title="Ver Items">
-                                 <Eye size={18} />
-                               </button>
-                             </div>
-                       </div>
-                    ))}
-                 </div>
-              )}
-           </div>
+            <div className="abono-form-card" style={{ margin: 0, background: '#ffffff', border: '1px solid #e2e8f0' }}>
+               <h3 style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginBottom: '15px' }}>
+                 <History style={{display:'inline', marginRight:'8px'}}/> Facturas Pendientes ({facturasPendientes.length})
+               </h3>
+               
+               {facturasPendientes.length === 0 ? (
+                  <p style={{color: 'var(--text-muted)'}}>No hay facturas vinculadas físicamente, pero tiene un saldo adeudado previo de ${clienteSeleccionado.deuda_total.toLocaleString()}.</p>
+               ) : (
+                  <div style={{ maxHeight: '420px', overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+                    <table className="crud-table" style={{ width: '100%', margin: 0, borderCollapse: 'collapse' }}>
+                      <thead style={{ position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1 }}>
+                        <tr>
+                          <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #e2e8f0', fontSize: '0.85rem' }}>Factura</th>
+                          <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #e2e8f0', fontSize: '0.85rem' }}>Fecha</th>
+                          <th style={{ padding: '10px', textAlign: 'right', borderBottom: '1px solid #e2e8f0', fontSize: '0.85rem' }}>Monto</th>
+                          <th style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #e2e8f0', fontSize: '0.85rem' }}></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {facturasPendientes.map(fp => (
+                          <tr key={fp.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '10px', fontFamily: 'monospace', fontSize: '0.9rem', color: '#334155', fontWeight: 'bold' }}>#{fp.numero}</td>
+                            <td style={{ padding: '10px', fontSize: '0.85rem', color: '#64748b' }}>{new Date(fp.fecha).toLocaleDateString()}</td>
+                            <td style={{ padding: '10px', textAlign: 'right', fontSize: '0.9rem', color: '#ef4444', fontWeight: 'bold' }}>${fp.total.toLocaleString()}</td>
+                            <td style={{ padding: '10px', textAlign: 'center' }}>
+                              <button className="primary-btn" style={{ padding: '4px 10px', fontSize: '0.75rem', background: '#eff6ff', color: '#3b82f6', border: '1px solid #dbeafe', borderRadius: '6px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }} onClick={() => verDetalleFactura(fp.id)} title="Ver Items">
+                                <Eye size={14} /> Ver
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+               )}
+            </div>
         </div>
       )}
 
@@ -274,7 +286,7 @@ export default function Abonos() {
                </div>
                <div>
                   <span style={{color: 'var(--text-muted)', fontSize: '0.85rem'}}>Estado:</span>
-                  <div><span className={`badge ${facturaDetalle.estado?.toLowerCase().startsWith('pag') ? 'pagado' : 'pendiente'}`}>{facturaDetalle.estado || 'Pendiente / Al Fiado'}</span></div>
+                  <div><span className={`badge ${facturaDetalle.estado?.toLowerCase().startsWith('pag') ? 'pagado' : 'pendiente'}`}>{facturaDetalle.estado || 'Pendiente / A Crédito'}</span></div>
                </div>
                <div>
                   <span style={{color: 'var(--text-muted)', fontSize: '0.85rem'}}>Total Originario:</span>

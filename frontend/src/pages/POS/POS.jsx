@@ -273,10 +273,12 @@ export default function POS() {
 
   // === CALCULOS DE CHECKOUT ===
   const cambio = checkoutData.monto_entregado ? Math.max(0, Number(checkoutData.monto_entregado) - total) : 0;
-  // Sugerencias cedula clientes
   const valorBusqueda = busquedaClienteRef.current?.value || "";
   const clientesSugeridos = checkoutData.tipo_venta === 'Crédito' && valorBusqueda.trim() !== ''
-    ? clientesMemo.filter(c => c.cedula && c.cedula.toString().includes(valorBusqueda.trim()))
+    ? clientesMemo.filter(c => 
+        (c.cedula && c.cedula.toString().includes(valorBusqueda.trim())) ||
+        (c.nombre && c.nombre.toLowerCase().includes(valorBusqueda.trim().toLowerCase()))
+      )
     : [];
 
   const iniciarCheckout = () => {
@@ -292,7 +294,7 @@ export default function POS() {
   const confirmarFactura = async (e) => {
     if (e) e.preventDefault();
     if (checkoutData.tipo_venta === 'Crédito' && !checkoutData.cliente_selected) {
-      showToast("❌ Debes asignar un cliente si la venta es a Crédito (Fiar)");
+      showToast("❌ Debes asignar un cliente si la venta es a Crédito");
       return;
     }
 
@@ -522,7 +524,7 @@ export default function POS() {
                 <label>Tipo de Venta:</label>
                 <div style={{ display: 'flex', gap: '1rem' }}>
                   <label><input type="radio" name="tipo" checked={checkoutData.tipo_venta === 'Contado'} onChange={() => setCheckoutData({ ...checkoutData, tipo_venta: 'Contado', cliente_selected: null })} /> Al Contado</label>
-                  <label><input type="radio" name="tipo" checked={checkoutData.tipo_venta === 'Crédito'} onChange={() => setCheckoutData({ ...checkoutData, tipo_venta: 'Crédito' })} /> Dar a Crédito (Fiar)</label>
+                  <label><input type="radio" name="tipo" checked={checkoutData.tipo_venta === 'Crédito'} onChange={() => setCheckoutData({ ...checkoutData, tipo_venta: 'Crédito' })} /> Dar a Crédito</label>
                 </div>
               </div>
 
@@ -546,8 +548,8 @@ export default function POS() {
 
               {checkoutData.tipo_venta === 'Crédito' && (
                 <div className="form-group" style={{ marginBottom: '1rem', background: 'rgba(239, 68, 68, 0.1)', padding: '15px', borderRadius: '8px' }}>
-                  <label style={{ color: '#fca5a5' }}>Filtrar por Cédula del Cliente (Dar a Crédito):</label>
-                  <input type="text" className="form-control" placeholder="Digita la cédula del cliente a buscar..." ref={busquedaClienteRef} onChange={() => setCheckoutData({ ...checkoutData, cliente_selected: null })} />
+                  <label style={{ color: '#fca5a5' }}>Filtrar por Nombre o Cédula del Cliente (Dar a Crédito):</label>
+                  <input type="text" className="form-control" placeholder="Busca por nombre o cédula del cliente..." ref={busquedaClienteRef} onChange={() => setCheckoutData({ ...checkoutData, cliente_selected: null })} />
 
                   {clientesSugeridos.length > 0 && (
                     <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', padding: '10px', marginTop: '5px', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
@@ -612,14 +614,14 @@ export default function POS() {
             </p>
 
             {/* Este es el Ticket Térmico Nativo */}
-            <div id="print-area" className="print-area" style={{ background: '#fff', color: '#000', padding: '20px', borderRadius: '8px', width: '300px', margin: '0 auto', fontSize: '12px', fontFamily: 'monospace' }}>
+            <div id="print-area" className="print-area" style={{ background: '#fff', color: '#000', padding: '10px', borderRadius: '8px', width: '270px', margin: '0 auto', fontSize: '11px', fontFamily: 'monospace' }}>
               {/* Carácter de control oculto para forzar apertura de cajón en algunas impresoras ESC/POS genéricas */}
               <div style={{ fontFamily: 'control', color: 'transparent', fontSize: '1px', lineHeight: '1px' }}>A</div>
 
               <div style={{ textAlign: 'center', marginBottom: '15px' }}>
-                <h3 style={{ margin: 0, fontSize: '16px' }}>TICKET DE VENTA</h3>
+                <h3 style={{ margin: 0, fontSize: '15px' }}>TICKET DE VENTA</h3>
                 <p style={{ margin: 0 }}>Nº {currentInvoice.numero}</p>
-                <p style={{ margin: 0 }}>------------------------</p>
+                <p style={{ margin: 0 }}>----------------------------</p>
                 <p style={{ margin: 0 }}>Fecha: {currentInvoice.fecha}</p>
                 <p style={{ margin: 0 }}>Cajero: {currentInvoice.vendedor}</p>
                 {currentInvoice.cliente_id && (
@@ -627,28 +629,30 @@ export default function POS() {
                 )}
                 <p style={{ margin: 0 }}>Tipo: {currentInvoice.tipo_venta.toUpperCase()}</p>
               </div>
-              <p style={{ margin: '10px 0', borderBottom: '1px dashed #000' }}></p>
+              <p style={{ margin: '8px 0', borderBottom: '1px dashed #000' }}></p>
 
-              <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+              <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', fontSize: '11px' }}>
                 <thead>
                   <tr>
-                    <th style={{ paddingBottom: '5px' }}>Cant</th>
-                    <th style={{ paddingBottom: '5px' }}>Desc</th>
-                    <th style={{ paddingBottom: '5px', textAlign: 'right' }}>Total</th>
+                    <th style={{ paddingBottom: '5px', width: '12%' }}>Cant</th>
+                    <th style={{ paddingBottom: '5px', width: '43%' }}>Desc</th>
+                    <th style={{ paddingBottom: '5px', width: '22%', textAlign: 'right' }}>V.Unit</th>
+                    <th style={{ paddingBottom: '5px', width: '23%', textAlign: 'right' }}>Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {currentInvoice.items.map((it, idx) => (
                     <tr key={idx}>
-                      <td style={{ paddingTop: '5px' }}>{it.cantidad}</td>
-                      <td style={{ paddingTop: '5px' }}>{it.descripcion}</td>
-                      <td style={{ paddingTop: '5px', textAlign: 'right' }}>${it.subtotal}</td>
+                      <td style={{ paddingTop: '5px', verticalAlign: 'top' }}>{it.cantidad}</td>
+                      <td style={{ paddingTop: '5px', verticalAlign: 'top', wordBreak: 'break-word' }}>{it.descripcion}</td>
+                      <td style={{ paddingTop: '5px', verticalAlign: 'top', textAlign: 'right' }}>${Math.round(it.precio_unitario || 0).toLocaleString()}</td>
+                      <td style={{ paddingTop: '5px', verticalAlign: 'top', textAlign: 'right' }}>${Math.round(it.subtotal).toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
 
-              <p style={{ margin: '10px 0', borderBottom: '1px dashed #000' }}></p>
+              <p style={{ margin: '8px 0', borderBottom: '1px dashed #000' }}></p>
               <div style={{ textAlign: 'right', fontWeight: 'bold', fontSize: '14px' }}>
                 TOTAL: ${currentInvoice.total.toLocaleString()}
               </div>

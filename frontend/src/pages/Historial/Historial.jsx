@@ -183,41 +183,43 @@ export default function Historial() {
                 <Printer size={18} /> Imprimir Ticket Termico
               </button>
             </div>
-
+            
             {/* Ticket Térmico Nativo */}
-            <div id="print-area" className="print-area" style={{ background: '#fff', color: '#000', padding: '20px', borderRadius: '8px', width: '300px', margin: '0 auto', fontSize: '12px', fontFamily: 'monospace' }}>
+            <div id="print-area" className="print-area" style={{ background: '#fff', color: '#000', padding: '10px', borderRadius: '8px', width: '270px', margin: '0 auto', fontSize: '11px', fontFamily: 'monospace' }}>
               <div style={{ textAlign: 'center', marginBottom: '15px' }}>
-                <h3 style={{ margin: 0, fontSize: '16px' }}>TICKET DE VENTA</h3>
+                <h3 style={{ margin: 0, fontSize: '15px' }}>TICKET DE VENTA</h3>
                 <p style={{ margin: 0 }}>Nº {facturaSeleccionada.numero}</p>
-                <p style={{ margin: 0 }}>------------------------</p>
+                <p style={{ margin: 0 }}>----------------------------</p>
                 <p style={{ margin: 0 }}>Fecha: {new Date(facturaSeleccionada.fecha).toLocaleString()}</p>
                 {facturaSeleccionada.cliente_nombre && (
                    <p style={{ margin: 0 }}>Cliente: {facturaSeleccionada.cliente_nombre}</p>
-                )}
+                 )}
                 <p style={{ margin: 0 }}>Tipo: {(facturaSeleccionada.tipo_venta || '').toUpperCase()}</p>
               </div>
-              <p style={{ margin: '10px 0', borderBottom: '1px dashed #000' }}></p>
+              <p style={{ margin: '8px 0', borderBottom: '1px dashed #000' }}></p>
               
-              <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+              <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', fontSize: '11px' }}>
                 <thead>
                   <tr>
-                    <th style={{ paddingBottom: '5px' }}>Cant</th>
-                    <th style={{ paddingBottom: '5px' }}>Desc</th>
-                    <th style={{ paddingBottom: '5px', textAlign: 'right' }}>Total</th>
+                    <th style={{ paddingBottom: '5px', width: '12%' }}>Cant</th>
+                    <th style={{ paddingBottom: '5px', width: '43%' }}>Desc</th>
+                    <th style={{ paddingBottom: '5px', width: '22%', textAlign: 'right' }}>V.Unit</th>
+                    <th style={{ paddingBottom: '5px', width: '23%', textAlign: 'right' }}>Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {facturaSeleccionada.items && facturaSeleccionada.items.map((it, idx) => (
                     <tr key={idx}>
-                      <td style={{ paddingTop: '5px', verticalAlign:'top' }}>{it.cantidad}</td>
-                      <td style={{ paddingTop: '5px' }}>{it.descripcion}</td>
-                      <td style={{ paddingTop: '5px', textAlign: 'right', verticalAlign:'top' }}>${it.subtotal}</td>
+                      <td style={{ paddingTop: '5px', verticalAlign: 'top' }}>{it.cantidad}</td>
+                      <td style={{ paddingTop: '5px', verticalAlign: 'top', wordBreak: 'break-word' }}>{it.descripcion}</td>
+                      <td style={{ paddingTop: '5px', verticalAlign: 'top', textAlign: 'right' }}>${Math.round(it.precio_unitario || 0).toLocaleString()}</td>
+                      <td style={{ paddingTop: '5px', verticalAlign: 'top', textAlign: 'right' }}>${Math.round(it.subtotal).toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
 
-              <p style={{ margin: '10px 0', borderBottom: '1px dashed #000' }}></p>
+              <p style={{ margin: '8px 0', borderBottom: '1px dashed #000' }}></p>
               <div style={{ textAlign: 'right', fontWeight: 'bold', fontSize: '14px' }}>
                 TOTAL: ${facturaSeleccionada.total.toLocaleString()}
               </div>

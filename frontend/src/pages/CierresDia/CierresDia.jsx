@@ -444,7 +444,7 @@ export default function CierresDia() {
                </button>
             </div>
 
-            <div className="print-area" style={{ background: '#fff', color: '#000', padding: '20px', borderRadius: '8px', fontFamily: 'monospace', fontSize: '14px' }}>
+            <div id="print-area" className="print-area" style={{ background: '#fff', color: '#000', padding: '20px', borderRadius: '8px', fontFamily: 'monospace', fontSize: '14px' }}>
                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                  <h2 style={{ margin: '0 0 5px 0' }}>REPORTE DE CIERRE DE DÍA</h2>
                  <p style={{ margin: '0' }}>---------------------------------</p>

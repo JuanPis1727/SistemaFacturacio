@@ -312,8 +312,8 @@ body {
     position: absolute;
     left: 0;
     top: 0;
-    width: 75mm !important; /* Ajuste para rollo de 80mm dejando un pequeño margen */
-    max-width: 80mm !important;
+    width: 70mm !important; /* Ajuste seguro para rollo de 80mm/58mm dejando un margen prudente */
+    max-width: 72mm !important;
     background: white !important;
     color: black !important;
     margin: 0 auto !important;
