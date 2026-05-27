@@ -34,6 +34,14 @@ export default function CierresDia() {
 
   const [loading, setLoading] = useState(false);
 
+  // Paginación del Historial
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filtroMes, filtroFecha, filtroProveedor, activeTab]);
+
   useEffect(() => {
     cargarProveedores();
     cargarHistorial();
@@ -187,6 +195,20 @@ export default function CierresDia() {
   };
 
   const cierresFiltrados = filtrarHistorial();
+  
+  // Paginación
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = cierresFiltrados.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(cierresFiltrados.length / itemsPerPage);
+
+  const nextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
   
   const calcularTotalFiltrado = () => {
     if (!filtroProveedor && !filtroMes) return null;
@@ -355,84 +377,79 @@ export default function CierresDia() {
            </div>
 
            <div className="historial-lista">
-             {cierresFiltrados.length === 0 ? (
-               <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>No hay cierres guardados que coincidan.</div>
-             ) : (
-               cierresFiltrados.map(cierre => (
-                 <div key={cierre.id} className="cierre-expandible card shadow-sm" style={{ background: 'white', borderRadius: '12px', marginBottom: '1rem', overflow: 'hidden' }}>
-                    <div 
-                      className="cierre-resumen" 
-                      onClick={() => setExpandedId(expandedId === cierre.id ? null : cierre.id)}
-                      style={{ padding: '1.5rem', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: expandedId === cierre.id ? '#f8fafc' : 'white', transition: 'background 0.2s' }}
-                    >
-                      <div>
-                        <h4 style={{ margin: '0 0 5px 0', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <Calendar size={18} /> Cierre del {new Date(cierre.fecha).toLocaleDateString()}
-                        </h4>
-                        <span style={{ fontSize: '0.9rem', color: '#64748b', display: 'block', marginBottom: '5px' }}>
-                          Guardado por: <strong>{cierre.usuario_nombre || 'Desconocido'}</strong> ({cierre.usuario_rol || 'Sistema'})
-                        </span>
-                        <span style={{ fontSize: '0.9rem', color: '#64748b' }}>
-                          {cierre.facturas?.length || 0} Facturas | Total final: <strong style={{ color: '#059669' }}>${Number(cierre.total_final).toLocaleString()}</strong>
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                         <button 
-                            onClick={(e) => { e.stopPropagation(); setViewInvoice(cierre); }}
-                            className="secondary-btn" 
-                            style={{ padding: '8px', display: 'flex', alignItems: 'center', gap: '5px', borderRadius: '8px' }}
-                            title="Ver e Imprimir Detalle"
-                         >
-                           <Eye size={18} color="#3b82f6" /> Ver
-                         </button>
-                         <div style={{ color: '#94a3b8' }}>
-                           {expandedId === cierre.id ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
-                         </div>
-                      </div>
-                    </div>
-                    
-                    {expandedId === cierre.id && (
-                      <div className="cierre-detalles" style={{ padding: '1.5rem', borderTop: '1px solid #e2e8f0', background: '#ffffff', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-                         <div>
-                            <h5 style={{ margin: '0 0 10px 0', color: '#334155', borderBottom: '1px solid #f1f5f9', paddingBottom: '5px' }}>Desglose de Facturas</h5>
-                            {cierre.facturas?.map(f => (
-                              <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', padding: '4px 0', color: '#475569' }}>
-                                <span>{f.proveedor_nombre} - {f.descripcion}</span>
-                                <strong>${Number(f.valor).toLocaleString()}</strong>
-                              </div>
-                            ))}
-                            <div style={{ textAlign: 'right', marginTop: '10px', fontWeight: 'bold' }}>
-                               Subtotal Facturas: ${Number(cierre.total_facturas).toLocaleString()}
-                            </div>
-                         </div>
-                         
-                         <div>
-                            <h5 style={{ margin: '0 0 10px 0', color: '#334155', borderBottom: '1px solid #f1f5f9', paddingBottom: '5px' }}>Desglose de Ajustes</h5>
-                            {cierre.ajustes?.length === 0 ? <p style={{ fontSize: '0.9rem', color: '#94a3b8' }}>Sin ajustes</p> : cierre.ajustes?.map(a => (
-                              <div key={a.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', padding: '4px 0', color: '#475569' }}>
-                                <span>{a.descripcion || a.tipo}</span>
-                                <strong style={{ color: a.tipo === 'suma' ? '#10b981' : '#ef4444' }}>
-                                  {a.tipo === 'suma' ? '+' : '-'}${Number(a.valor).toLocaleString()}
-                                </strong>
-                              </div>
-                            ))}
-                            <div style={{ textAlign: 'right', marginTop: '10px', fontWeight: 'bold' }}>
-                               Subtotal Ajustes: <span style={{ color: Number(cierre.total_ajustes) < 0 ? '#10b981' : '#ef4444' }}>${Number(cierre.total_ajustes).toLocaleString()}</span>
-                            </div>
-                         </div>
-                      </div>
+              <div className="crud-table-container">
+                <table className="crud-table">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Guardado por</th>
+                      <th>Facturas</th>
+                      <th>Total Facturas</th>
+                      <th>Total Ajustes</th>
+                      <th>Total Cierre</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentItems.map(cierre => (
+                      <tr key={cierre.id}>
+                        <td style={{ fontWeight: 500 }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Calendar size={16} />
+                            {new Date(cierre.fecha).toLocaleDateString()}
+                          </span>
+                        </td>
+                        <td>
+                          <strong>{cierre.usuario_nombre || 'Desconocido'}</strong> <span style={{ color: '#64748b', fontSize: '0.85em' }}>({cierre.usuario_rol || 'Sistema'})</span>
+                        </td>
+                        <td>{cierre.facturas?.length || 0} facturas</td>
+                        <td>${Number(cierre.total_facturas || 0).toLocaleString()}</td>
+                        <td style={{ color: Number(cierre.total_ajustes) < 0 ? '#ef4444' : '#10b981' }}>
+                          {Number(cierre.total_ajustes) > 0 ? '+' : ''}${Number(cierre.total_ajustes || 0).toLocaleString()}
+                        </td>
+                        <td>
+                          <span className="badge pagado" style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>
+                            ${Number(cierre.total_final).toLocaleString()}
+                          </span>
+                        </td>
+                        <td>
+                          <button 
+                             onClick={() => setViewInvoice(cierre)}
+                             className="primary-btn" 
+                             style={{ padding: '6px 14px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '5px', borderRadius: '8px', background: 'linear-gradient(135deg, #3b82f6, #2563eb)' }}
+                             title="Ver Detalle y Factura"
+                          >
+                            <Eye size={16} /> Ver Reporte
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {cierresFiltrados.length === 0 && (
+                       <tr><td colSpan="7" style={{textAlign:'center', padding: '2rem'}}>No hay cierres guardados que coincidan.</td></tr>
                     )}
-                 </div>
-               ))
-             )}
-           </div>
-        </div>
-      )}
+                  </tbody>
+                </table>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="pagination-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '1.5rem', marginBottom: '1.5rem' }}>
+                  <button onClick={prevPage} disabled={currentPage === 1} className="primary-btn" style={{ background: currentPage === 1 ? '#ccc' : '#3b82f6', color: 'white', padding: '8px 16px' }}>
+                    &laquo; Anterior
+                  </button>
+                  <span style={{ fontWeight: 'bold' }}>Página {currentPage} de {totalPages}</span>
+                  <button onClick={nextPage} disabled={currentPage === totalPages} className="primary-btn" style={{ background: currentPage === totalPages ? '#ccc' : '#3b82f6', color: 'white', padding: '8px 16px' }}>
+                    Siguiente &raquo;
+                  </button>
+                </div>
+              )}
+            </div>
+         </div>
+       )}
 
       {/* MODAL: VISTA DE FACTURA/PDF PARA IMPRIMIR */}
       {viewInvoice && (
-        <div className="modal-overlay">
-          <div className="modal-content glass-card" style={{ maxWidth: '600px' }}>
+        <div className="modal-overlay no-print">
+          <div className="modal-content invoice-modal">
             <div className="modal-header no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2>Detalle de Cierre</h2>
               <button className="close-btn" onClick={() => setViewInvoice(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#ef4444' }}><XCircle size={28} /></button>
@@ -444,67 +461,67 @@ export default function CierresDia() {
                </button>
             </div>
 
-            <div id="print-area" className="print-area" style={{ background: '#fff', color: '#000', padding: '20px', borderRadius: '8px', fontFamily: 'monospace', fontSize: '14px' }}>
-               <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                 <h2 style={{ margin: '0 0 5px 0' }}>REPORTE DE CIERRE DE DÍA</h2>
-                 <p style={{ margin: '0' }}>---------------------------------</p>
-                 <p style={{ margin: '5px 0' }}>Fecha: {new Date(viewInvoice.fecha).toLocaleDateString()}</p>
-                 <p style={{ margin: '5px 0' }}>Usuario: {viewInvoice.usuario_nombre || 'Desconocido'} ({viewInvoice.usuario_rol || 'N/A'})</p>
-                 <p style={{ margin: '0' }}>---------------------------------</p>
+            <div id="print-area" className="print-area" style={{ background: '#fff', color: '#000', padding: '10px', borderRadius: '8px', width: '270px', margin: '0 auto', fontSize: '11px', fontFamily: 'monospace' }}>
+               <div style={{ textAlign: 'center', marginBottom: '15px' }}>
+                 <h3 style={{ margin: 0, fontSize: '14px' }}>REPORTE DE CIERRE</h3>
+                 <p style={{ margin: 0 }}>----------------------------</p>
+                 <p style={{ margin: '3px 0' }}>Fecha: {new Date(viewInvoice.fecha).toLocaleDateString()}</p>
+                 <p style={{ margin: '3px 0' }}>Usuario: {viewInvoice.usuario_nombre || 'Desconocido'} ({viewInvoice.usuario_rol || 'N/A'})</p>
+                 <p style={{ margin: 0 }}>----------------------------</p>
                </div>
 
-               <h3 style={{ borderBottom: '1px dashed #000', paddingBottom: '5px', marginTop: '20px' }}>FACTURAS DE PROVEEDORES</h3>
-               <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', marginBottom: '15px' }}>
+               <h4 style={{ borderBottom: '1px dashed #000', paddingBottom: '5px', marginTop: '15px', fontSize: '12px', textAlign: 'center' }}>FACTURAS DE PROVEEDORES</h4>
+               <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', fontSize: '11px', marginBottom: '10px' }}>
                  <thead>
                    <tr>
-                     <th style={{ paddingBottom: '5px' }}>Proveedor / Detalle</th>
-                     <th style={{ paddingBottom: '5px', textAlign: 'right' }}>Valor</th>
+                     <th style={{ paddingBottom: '5px', width: '60%' }}>Proveedor / Detalle</th>
+                     <th style={{ paddingBottom: '5px', width: '40%', textAlign: 'right' }}>Valor</th>
                    </tr>
                  </thead>
                  <tbody>
                    {viewInvoice.facturas?.length === 0 ? <tr><td colSpan="2" style={{textAlign:'center'}}>Sin facturas</td></tr> : null}
                    {viewInvoice.facturas?.map(f => (
                      <tr key={f.id}>
-                       <td style={{ paddingTop: '5px' }}>{f.proveedor_nombre} <br/><small>{f.descripcion}</small></td>
-                       <td style={{ paddingTop: '5px', textAlign: 'right' }}>${Number(f.valor).toLocaleString()}</td>
+                       <td style={{ paddingTop: '5px', verticalAlign: 'top', wordBreak: 'break-word' }}>{f.proveedor_nombre} <br/><small style={{color:'#666'}}>{f.descripcion}</small></td>
+                       <td style={{ paddingTop: '5px', verticalAlign: 'top', textAlign: 'right' }}>${Math.round(f.valor || 0).toLocaleString()}</td>
                      </tr>
                    ))}
                  </tbody>
                </table>
-               <div style={{ textAlign: 'right', fontWeight: 'bold' }}>
-                  Total Facturas: ${Number(viewInvoice.total_facturas).toLocaleString()}
+               <div style={{ textAlign: 'right', fontWeight: 'bold', fontSize: '12px', marginBottom: '15px' }}>
+                  Total Facturas: ${Math.round(viewInvoice.total_facturas || 0).toLocaleString()}
                </div>
 
-               <h3 style={{ borderBottom: '1px dashed #000', paddingBottom: '5px', marginTop: '20px' }}>AJUSTES AL CIERRE</h3>
-               <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', marginBottom: '15px' }}>
+               <h4 style={{ borderBottom: '1px dashed #000', paddingBottom: '5px', marginTop: '15px', fontSize: '12px', textAlign: 'center' }}>AJUSTES AL CIERRE</h4>
+               <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', fontSize: '11px', marginBottom: '10px' }}>
                  <thead>
                    <tr>
-                     <th style={{ paddingBottom: '5px' }}>Descripción</th>
-                     <th style={{ paddingBottom: '5px', textAlign: 'right' }}>Valor</th>
+                     <th style={{ paddingBottom: '5px', width: '60%' }}>Descripción</th>
+                     <th style={{ paddingBottom: '5px', width: '40%', textAlign: 'right' }}>Valor</th>
                    </tr>
                  </thead>
                  <tbody>
                    {viewInvoice.ajustes?.length === 0 ? <tr><td colSpan="2" style={{textAlign:'center'}}>Sin ajustes</td></tr> : null}
                    {viewInvoice.ajustes?.map(a => (
                      <tr key={a.id}>
-                       <td style={{ paddingTop: '5px' }}>{a.descripcion || a.tipo}</td>
-                       <td style={{ paddingTop: '5px', textAlign: 'right' }}>
-                         {a.tipo === 'suma' ? '+' : '-'}${Number(a.valor).toLocaleString()}
+                       <td style={{ paddingTop: '5px', verticalAlign: 'top', wordBreak: 'break-word' }}>{a.descripcion || a.tipo}</td>
+                       <td style={{ paddingTop: '5px', verticalAlign: 'top', textAlign: 'right' }}>
+                         {a.tipo === 'suma' ? '+' : '-'}${Math.round(a.valor || 0).toLocaleString()}
                        </td>
                      </tr>
                    ))}
                  </tbody>
                </table>
-               <div style={{ textAlign: 'right', fontWeight: 'bold' }}>
-                  Total Ajustes: ${Number(viewInvoice.total_ajustes).toLocaleString()}
+               <div style={{ textAlign: 'right', fontWeight: 'bold', fontSize: '12px', marginBottom: '15px' }}>
+                  Total Ajustes: ${Math.round(viewInvoice.total_ajustes || 0).toLocaleString()}
                </div>
 
-               <div style={{ marginTop: '30px', borderTop: '2px solid #000', paddingTop: '10px', textAlign: 'right', fontSize: '18px', fontWeight: 'bold' }}>
-                  TOTAL CIERRE DÍA: ${Number(viewInvoice.total_final).toLocaleString()}
+               <div style={{ marginTop: '20px', borderTop: '2px solid #000', paddingTop: '10px', textAlign: 'right', fontSize: '15px', fontWeight: 'bold' }}>
+                  TOTAL CIERRE DÍA: ${Math.round(viewInvoice.total_final || 0).toLocaleString()}
                </div>
 
-               <div style={{ textAlign: 'center', marginTop: '40px', fontSize: '12px' }}>
-                 <p>---------------------------------</p>
+               <div style={{ textAlign: 'center', marginTop: '30px', fontSize: '11px' }}>
+                 <p>----------------------------</p>
                  <p>Documento de control interno</p>
                </div>
             </div>

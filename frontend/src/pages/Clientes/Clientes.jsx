@@ -143,7 +143,7 @@ export default function Clientes() {
               <th>Nombre</th>
               <th>Teléfono</th>
               <th>Deuda Pendiente</th>
-              <th>Acciones</th>
+              {user?.rol !== 'empleado' && <th>Acciones</th>}
             </tr>
           </thead>
           <tbody>
@@ -157,14 +157,14 @@ export default function Clientes() {
                     ${c.deuda_total.toLocaleString()}
                   </span>
                 </td>
-                <td>
-                  <div className="crud-actions">
-                    <button className="icon-btn edit" onClick={() => abrirParaEditar(c)}><Edit2 size={16} /></button>
-                    {user?.rol !== 'empleado' && (
+                {user?.rol !== 'empleado' && (
+                  <td>
+                    <div className="crud-actions">
+                      <button className="icon-btn edit" onClick={() => abrirParaEditar(c)}><Edit2 size={16} /></button>
                       <button className="icon-btn delete" onClick={() => handleDelete(c.id)}><Trash2 size={16} /></button>
-                    )}
-                  </div>
-                </td>
+                    </div>
+                  </td>
+                )}
               </tr>
             ))}
             {filteredClientes.length === 0 && !loading && (

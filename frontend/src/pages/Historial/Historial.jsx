@@ -62,9 +62,7 @@ export default function Historial() {
     // Global filter
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      const match = (f.numero && String(f.numero).toLowerCase().includes(term)) ||
-                    (f.id && String(f.id).includes(term)) ||
-                    (f.cliente_nombre && String(f.cliente_nombre).toLowerCase().includes(term)) ||
+      const match = (f.cliente_nombre && String(f.cliente_nombre).toLowerCase().includes(term)) ||
                     (f.total && String(f.total).includes(term)) ||
                     (f.estado && String(f.estado).toLowerCase().includes(term));
       if (!match) return false;
@@ -97,7 +95,7 @@ export default function Historial() {
         <div style={{ display: 'flex', gap: '1rem', background: 'rgba(0,0,0,0.2)', padding:'10px', borderRadius:'8px', flexWrap: 'wrap' }}>
            <div>
              <label style={{display:'block', fontSize:'0.8rem', color:'var(--text-muted)'}}>Buscar:</label>
-             <input type="text" className="form-control" placeholder="Número, cliente..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+             <input type="text" className="form-control" placeholder="Cliente, total, estado..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
            </div>
            <div>
              <label style={{display:'block', fontSize:'0.8rem', color:'var(--text-muted)'}}>Desde:</label>
@@ -171,7 +169,7 @@ export default function Historial() {
       )}
 
       {facturaSeleccionada && (
-        <div className="modal-overlay">
+        <div className="modal-overlay no-print">
           <div className="modal-content invoice-modal">
             <div className="no-print" style={{display: 'flex', justifyContent: 'space-between', marginBottom:'1.5rem'}}>
                <h2 style={{color: '#10b981', margin: 0}}>Detalle de Factura</h2>

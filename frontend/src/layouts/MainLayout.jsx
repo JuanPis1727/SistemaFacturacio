@@ -102,6 +102,11 @@ export default function MainLayout() {
             <span>Cierre del Día</span>
           </NavLink>
 
+          <NavLink to="/devoluciones" onClick={closeMobileMenu} className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+            <ArrowLeftRight size={20} />
+            <span>Devoluciones</span>
+          </NavLink>
+
           {isAdmin && (
             <>
               <div className="nav-divider" />
@@ -113,11 +118,6 @@ export default function MainLayout() {
               <NavLink to="/usuarios" onClick={closeMobileMenu} className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
                 <UserCog size={20} />
                 <span>Usuarios</span>
-              </NavLink>
-
-              <NavLink to="/devoluciones" onClick={closeMobileMenu} className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
-                <ArrowLeftRight size={20} />
-                <span>Devoluciones</span>
               </NavLink>
             </>
           )}

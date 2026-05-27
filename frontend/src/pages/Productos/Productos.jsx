@@ -157,7 +157,7 @@ export default function Productos() {
               <th>Nombre</th>
               <th>Stock</th>
               <th>Precio Venta</th>
-              <th>Acciones</th>
+              {user?.rol !== 'empleado' && <th>Acciones</th>}
             </tr>
           </thead>
           <tbody>
@@ -171,14 +171,14 @@ export default function Productos() {
                   </span>
                 </td>
                 <td>${p.precio_venta.toLocaleString()}</td>
-                <td>
-                  <div className="crud-actions">
-                    <button className="icon-btn edit" onClick={() => abrirParaEditar(p)}><Edit2 size={16} /></button>
-                    {user?.rol !== 'empleado' && (
+                {user?.rol !== 'empleado' && (
+                  <td>
+                    <div className="crud-actions">
+                      <button className="icon-btn edit" onClick={() => abrirParaEditar(p)}><Edit2 size={16} /></button>
                       <button className="icon-btn delete" onClick={() => handleDelete(p.id)}><Trash2 size={16} /></button>
-                    )}
-                  </div>
-                </td>
+                    </div>
+                  </td>
+                )}
               </tr>
             ))}
             {filteredProductos.length === 0 && !loading && (
