@@ -110,6 +110,7 @@ export const createFactura = async (req, res) => {
     }
 
   } catch (error) {
+    console.error("❌ Error al crear factura:", error);
     res.status(500).json({ success: false, message: 'Error al crear la factura', error: error.message });
   }
 };

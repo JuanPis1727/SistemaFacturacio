@@ -349,7 +349,7 @@ export default function POS() {
       setCartClienteSelected(null);
       setBusquedaCartCliente('');
     } else {
-      showToast('❌ Error en BD: ' + res.message);
+      showToast('❌ Error en BD: ' + (res.error ? `${res.message} (${res.error})` : res.message));
     }
     setLoading(false);
   };
