@@ -243,6 +243,7 @@ export default function POS() {
     );
     if (cli) {
       setCartClienteSelected(cli);
+      setBusquedaCartCliente('');
       if (cli.deuda_total > 0) {
         showToast(`💰 El cliente ${cli.nombre} tiene una deuda pendiente de $${cli.deuda_total.toLocaleString()}`);
       } else {
@@ -252,6 +253,23 @@ export default function POS() {
       showToast("❌ Cliente no encontrado.");
     }
   };
+
+  const seleccionarClienteCart = (cli) => {
+    setCartClienteSelected(cli);
+    setBusquedaCartCliente('');
+    if (cli.deuda_total > 0) {
+      showToast(`💰 El cliente ${cli.nombre} tiene una deuda pendiente de $${cli.deuda_total.toLocaleString()}`);
+    } else {
+      showToast(`✅ Cliente ${cli.nombre} seleccionado. No tiene deudas pendientes.`);
+    }
+  };
+
+  const sugerenciasClientesCart = busquedaCartCliente.trim() !== ''
+    ? clientesMemo.filter(c => 
+        (c.cedula && c.cedula.toString().toLowerCase().includes(busquedaCartCliente.trim().toLowerCase())) ||
+        (c.nombre && c.nombre.toLowerCase().includes(busquedaCartCliente.trim().toLowerCase()))
+      ).slice(0, 10)
+    : [];
 
   const agregarDeudaAlCarrito = () => {
     if (!cartClienteSelected || cartClienteSelected.deuda_total <= 0) return;
@@ -466,6 +484,19 @@ export default function POS() {
                   <Search size={16} />
                 </button>
               </div>
+              {sugerenciasClientesCart.length > 0 && (
+                <div style={{
+                  background: '#ffffff', border: '1px solid #cbd5e1', padding: '5px', marginTop: '5px', borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', maxHeight: '150px', overflowY: 'auto', zIndex: 999, position: 'relative'
+                }}>
+                  {sugerenciasClientesCart.map(cli => (
+                    <div key={cli.id} style={{ padding: '8px', cursor: 'pointer', borderBottom: '1px solid #e2e8f0', color: '#0f172a', fontSize: '0.9rem', fontWeight: '500' }}
+                      onClick={() => seleccionarClienteCart(cli)}>
+                      {cli.cedula} - {cli.nombre}
+                    </div>
+                  ))}
+                </div>
+              )}
               {cartClienteSelected && (
                 <div style={{ marginTop: '10px' }}>
                   <div style={{ color: '#10b981', fontWeight: 'bold', fontSize: '0.95rem' }}>
