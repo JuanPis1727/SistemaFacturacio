@@ -233,10 +233,14 @@ export default function POS() {
   // === COBRO DE DEUDA ANTERIOR ===
   const buscarClienteCart = () => {
     if (busquedaCartCliente.trim() === '') {
-      showToast("⚠️ Ingresa una cédula para buscar al cliente.");
+      showToast("⚠️ Ingresa un nombre o cédula para buscar al cliente.");
       return;
     }
-    const cli = clientesMemo.find(c => c.cedula && c.cedula.toString().includes(busquedaCartCliente.trim()));
+    const term = busquedaCartCliente.trim().toLowerCase();
+    const cli = clientesMemo.find(c => 
+      (c.cedula && c.cedula.toString().toLowerCase().includes(term)) ||
+      (c.nombre && c.nombre.toLowerCase().includes(term))
+    );
     if (cli) {
       setCartClienteSelected(cli);
       if (cli.deuda_total > 0) {
@@ -452,7 +456,7 @@ export default function POS() {
                 <input 
                   type="text" 
                   className="form-control" 
-                  placeholder="Cédula del cliente..."
+                  placeholder="Cédula o nombre del cliente..."
                   value={busquedaCartCliente}
                   onChange={e => setBusquedaCartCliente(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && buscarClienteCart()}
