@@ -7,6 +7,7 @@ import './CierresDia.css';
 export default function CierresDia() {
   const { user } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState('cierre_actual');
+  const [fechaCierre, setFechaCierre] = useState(() => new Date().toLocaleDateString('en-CA'));
   
   // Tab 1: Cierre Actual (Persistencia Local)
   const [proveedores, setProveedores] = useState([]);
@@ -143,7 +144,7 @@ export default function CierresDia() {
       usuario_id: user?.id,
       usuario_nombre: user?.nombre,
       usuario_rol: user?.rol,
-      fecha: new Date().toLocaleDateString('en-CA')
+      fecha: fechaCierre
     };
 
     const res = await fetchAPI('/cierres-dia', {
@@ -334,12 +335,22 @@ export default function CierresDia() {
                  </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '10px', marginTop: '1.5rem' }}>
-                 <button className="secondary-btn" onClick={limpiarCierre} style={{ padding: '1rem', background: '#f8fafc', color: '#ef4444', border: '1px solid #fecaca', flex: 1 }}>Limpiar</button>
-                 <button className="primary-btn" onClick={guardarCierre} disabled={loading} style={{ padding: '1rem', flex: 2 }}>
-                    <Save size={20} style={{marginRight: '8px'}} /> {loading ? 'Guardando...' : 'Guardar Cierre Día'}
-                 </button>
-              </div>
+               <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                 <label style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: 'bold' }}>Fecha del Cierre:</label>
+                 <input 
+                   type="date" 
+                   className="form-control" 
+                   value={fechaCierre} 
+                   onChange={(e) => setFechaCierre(e.target.value)} 
+                 />
+               </div>
+
+               <div style={{ display: 'flex', gap: '10px', marginTop: '1.5rem' }}>
+                  <button className="secondary-btn" onClick={limpiarCierre} style={{ padding: '1rem', background: '#f8fafc', color: '#ef4444', border: '1px solid #fecaca', flex: 1 }}>Limpiar</button>
+                  <button className="primary-btn" onClick={guardarCierre} disabled={loading} style={{ padding: '1rem', flex: 2 }}>
+                     <Save size={20} style={{marginRight: '8px'}} /> {loading ? 'Guardando...' : 'Guardar Cierre Día'}
+                  </button>
+               </div>
           </div>
         </div>
       )}

@@ -5,8 +5,9 @@ import './Cierres.css';
 
 export default function Cierres() {
   const [loading, setLoading] = useState(false);
-  const [facturasHoy, setFacturasHoy] = useState([]);
-  const [abonosHoy, setAbonosHoy] = useState([]);
+  const [fechaCierre, setFechaCierre] = useState(() => new Date().toLocaleDateString('en-CA'));
+  const [facturasTodas, setFacturasTodas] = useState([]);
+  const [abonosTodos, setAbonosTodos] = useState([]);
   const [cierresHistorial, setCierresHistorial] = useState([]);
   const [filtroFecha, setFiltroFecha] = useState('');
   
@@ -16,51 +17,44 @@ export default function Cierres() {
 
   const cargarDatosGenerales = async () => {
     setLoading(true);
-    // 1. Cargar las facturas para calcular ventas de contado de hoy
-    const resFacturas = await fetchAPI('/facturas');
-    if (resFacturas.success) {
-      const hoy = new Date().toDateString();
-      const ventasHoy = resFacturas.data.filter(f => 
-        new Date(f.fecha).toDateString() === hoy && 
-        f.estado !== 'Anulada' && 
-        f.estado !== 'Pendiente' &&
-        f.tipo_venta?.toLowerCase() !== 'crédito' &&
-        f.tipo_venta?.toLowerCase() !== 'credito'
-      );
-      setFacturasHoy(ventasHoy);
-    }
-
-    // 2. Cargar los abonos para sumar pagos de créditos/fiados
-    const resAbonos = await fetchAPI('/abonos');
-    if (resAbonos.success) {
-      const hoy = new Date().toDateString();
-      const abonosDeHoy = resAbonos.data.filter(a => 
-        new Date(a.fecha_abono || a.fecha || new Date()).toDateString() === hoy
-      );
-      setAbonosHoy(abonosDeHoy);
-    }
-
-    // 2. Cargar el historial de cierres
-    const resCierres = await fetchAPI('/cierres');
-    if (resCierres.success) {
-      setCierresHistorial(resCierres.data);
-    }
+    const [resFacturas, resAbonos, resCierres] = await Promise.all([
+      fetchAPI('/facturas'),
+      fetchAPI('/abonos'),
+      fetchAPI('/cierres')
+    ]);
+    if (resFacturas.success) setFacturasTodas(resFacturas.data);
+    if (resAbonos.success) setAbonosTodos(resAbonos.data);
+    if (resCierres.success) setCierresHistorial(resCierres.data);
     setLoading(false);
   };
 
-  const totalFacturasContado = facturasHoy.reduce((acc, f) => acc + (Number(f.total) || 0), 0);
-  const totalAbonos = abonosHoy.reduce((acc, a) => acc + (Number(a.monto) || 0), 0);
+  const facturasFiltradas = facturasTodas.filter(f => {
+    const localDate = new Date(f.fecha).toLocaleDateString('en-CA');
+    return localDate === fechaCierre && 
+           f.estado !== 'Anulada' && 
+           f.estado !== 'Pendiente' &&
+           f.tipo_venta?.toLowerCase() !== 'crédito' &&
+           f.tipo_venta?.toLowerCase() !== 'credito';
+  });
+
+  const abonosFiltrados = abonosTodos.filter(a => {
+    const localDate = new Date(a.fecha_abono || a.fecha || new Date()).toLocaleDateString('en-CA');
+    return localDate === fechaCierre;
+  });
+
+  const totalFacturasContado = facturasFiltradas.reduce((acc, f) => acc + (Number(f.total) || 0), 0);
+  const totalAbonos = abonosFiltrados.reduce((acc, a) => acc + (Number(a.monto) || 0), 0);
   const totalCalculado = totalFacturasContado + totalAbonos;
 
   const procesarCierre = async () => {
-    if (!window.confirm(`¿Seguro que deseas guardar el cierre de caja de hoy por el valor total de $${totalCalculado.toLocaleString()}?`)) return;
+    if (!window.confirm(`¿Seguro que deseas guardar el cierre de caja para el día ${fechaCierre} por el valor total de $${totalCalculado.toLocaleString()}?`)) return;
     
     setLoading(true);
     const payload = {
       usuario_id: 1, // Obtener del Context si se necesita
       efectivo_manual: totalCalculado, // Lo enviamos igual al sistema para evitar "descuadres", el backend lo procesará exacto
       notas: 'Cierre Total del Día',
-      fecha: new Date().toLocaleDateString('en-CA') // YYYY-MM-DD local
+      fecha: fechaCierre // YYYY-MM-DD local seleccionado
     };
 
     const res = await fetchAPI('/cierres', {
@@ -98,15 +92,21 @@ export default function Cierres() {
           
           <div className="stat" style={{ borderBottom: '1px solid #e2e8f0', color: '#334155' }}>
             <span>Facturas de Contado Pagadas:</span>
-            <strong>{facturasHoy.length} (${totalFacturasContado.toLocaleString()})</strong>
+            <strong>{facturasFiltradas.length} (${totalFacturasContado.toLocaleString()})</strong>
           </div>
           <div className="stat" style={{ borderBottom: '1px solid #e2e8f0', color: '#334155' }}>
             <span>Abonos / Pagos de Créditos:</span>
-            <strong>{abonosHoy.length} (${totalAbonos.toLocaleString()})</strong>
+            <strong>{abonosFiltrados.length} (${totalAbonos.toLocaleString()})</strong>
           </div>
-          <div className="stat" style={{ borderBottom: '1px solid #e2e8f0', color: '#334155' }}>
-            <span>Fecha Actual:</span>
-            <strong>{new Date().toLocaleDateString()}</strong>
+          <div className="stat" style={{ borderBottom: '1px solid #e2e8f0', color: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span>Fecha del Cierre:</span>
+            <input 
+              type="date" 
+              className="form-control" 
+              style={{ width: 'auto', padding: '4px 8px', fontSize: '0.9rem' }}
+              value={fechaCierre}
+              onChange={(e) => setFechaCierre(e.target.value)}
+            />
           </div>
 
           <div style={{marginTop: '2rem'}}>
