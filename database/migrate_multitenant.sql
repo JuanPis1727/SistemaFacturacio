@@ -146,3 +146,13 @@ BEGIN
     ALTER TABLE cierres_dia ADD CONSTRAINT FK_cierres_dia_negocios FOREIGN KEY (negocio_id) REFERENCES negocios(id);
 END
 GO
+
+-- factura_items
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('factura_items') AND name = 'negocio_id')
+BEGIN
+    ALTER TABLE factura_items ADD negocio_id INT NULL;
+    EXEC('UPDATE factura_items SET negocio_id = 1');
+    ALTER TABLE factura_items ALTER COLUMN negocio_id INT NOT NULL;
+    ALTER TABLE factura_items ADD CONSTRAINT FK_factura_items_negocios FOREIGN KEY (negocio_id) REFERENCES negocios(id);
+END
+GO

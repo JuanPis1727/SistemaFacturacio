@@ -31,7 +31,8 @@ export const getFacturaById = async (req, res) => {
     // Obtener items de la factura
     const itemsResult = await pool.request()
       .input('factura_id', sql.Int, id)
-      .query('SELECT * FROM factura_items WHERE factura_id = @factura_id');
+      .input('negocio_id', sql.Int, negocio_id)
+      .query('SELECT * FROM factura_items WHERE factura_id = @factura_id AND negocio_id = @negocio_id');
       
     factura.items = itemsResult.recordset;
 
@@ -94,9 +95,10 @@ export const createFactura = async (req, res) => {
             .input('cantidad', sql.Decimal(10,2), item.cantidad)
             .input('precio_unitario', sql.Decimal(14,2), item.precio_unitario)
             .input('subtotal', sql.Decimal(14,2), item.subtotal)
+            .input('negocio_id', sql.Int, negocio_id)
             .query(`
-              INSERT INTO factura_items (factura_id, producto_id, descripcion, cantidad, precio_unitario, subtotal)
-              VALUES (@factura_id, @producto_id, @descripcion, @cantidad, @precio_unitario, @subtotal);
+              INSERT INTO factura_items (factura_id, producto_id, descripcion, cantidad, precio_unitario, subtotal, negocio_id)
+              VALUES (@factura_id, @producto_id, @descripcion, @cantidad, @precio_unitario, @subtotal, @negocio_id);
             `);
         }
       }
