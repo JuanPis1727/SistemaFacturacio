@@ -5,14 +5,18 @@ export const saveCierreDia = async (req, res) => {
   let pool;
   let transaction;
   try {
-    const { facturas, ajustes, total_facturas, total_ajustes, total_final, usuario_id, usuario_nombre, usuario_rol } = req.body;
+    const { facturas, ajustes, total_facturas, total_ajustes, total_final, usuario_id, usuario_nombre, usuario_rol, fecha: clientFecha } = req.body;
+    const negocio_id = req.usuario.negocio_id || 1;
     
     pool = await getConnection();
     transaction = new sql.Transaction(pool);
     await transaction.begin();
 
     const cierreId = crypto.randomUUID();
-    const fecha = new Date().toISOString().split('T')[0]; // Solo fecha YYYY-MM-DD
+    
+    // Obtener la fecha local del negocio. Prioriza la fecha enviada por el cliente.
+    // Fallback: fecha local del servidor formateada como YYYY-MM-DD
+    const fecha = clientFecha || new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' });
 
     // 1. Insertar el cierre del dia principal
     await transaction.request()
@@ -24,9 +28,10 @@ export const saveCierreDia = async (req, res) => {
       .input('usuario_id', sql.Int, usuario_id || null)
       .input('usuario_nombre', sql.VarChar, usuario_nombre || null)
       .input('usuario_rol', sql.VarChar, usuario_rol || null)
+      .input('negocio_id', sql.Int, negocio_id)
       .query(`
-        INSERT INTO cierres_dia (id, fecha, total_facturas, total_ajustes, total_final, usuario_id, usuario_nombre, usuario_rol)
-        VALUES (@id, @fecha, @total_facturas, @total_ajustes, @total_final, @usuario_id, @usuario_nombre, @usuario_rol)
+        INSERT INTO cierres_dia (id, fecha, total_facturas, total_ajustes, total_final, usuario_id, usuario_nombre, usuario_rol, negocio_id)
+        VALUES (@id, @fecha, @total_facturas, @total_ajustes, @total_final, @usuario_id, @usuario_nombre, @usuario_rol, @negocio_id)
       `);
 
     // 2. Insertar las facturas relacionadas
@@ -70,10 +75,13 @@ export const saveCierreDia = async (req, res) => {
 
 export const getHistorialCierres = async (req, res) => {
   try {
+    const negocio_id = req.usuario.negocio_id || 1;
     const pool = await getConnection();
     
-    // Obtener cierres base ordenados por fecha descendente
-    const resultCierres = await pool.request().query('SELECT * FROM cierres_dia ORDER BY fecha DESC');
+    // Obtener cierres base ordenados por fecha descendente del negocio actual
+    const resultCierres = await pool.request()
+      .input('negocio_id', sql.Int, negocio_id)
+      .query('SELECT * FROM cierres_dia WHERE negocio_id = @negocio_id ORDER BY fecha DESC');
     const cierres = resultCierres.recordset;
 
     // Poblar con las facturas_cierre y ajustes_cierre

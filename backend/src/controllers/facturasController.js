@@ -2,8 +2,11 @@ import { getConnection, sql } from '../config/db.js';
 
 export const getFacturas = async (req, res) => {
   try {
+    const negocio_id = req.usuario.negocio_id || 1;
     const pool = await getConnection();
-    const result = await pool.request().query('SELECT * FROM facturas ORDER BY id DESC');
+    const result = await pool.request()
+      .input('negocio_id', sql.Int, negocio_id)
+      .query('SELECT * FROM facturas WHERE negocio_id = @negocio_id ORDER BY id DESC');
     res.json({ success: true, data: result.recordset });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error al obtener facturas', error: error.message });
@@ -13,12 +16,14 @@ export const getFacturas = async (req, res) => {
 export const getFacturaById = async (req, res) => {
   try {
     const { id } = req.params;
+    const negocio_id = req.usuario.negocio_id || 1;
     const pool = await getConnection();
     
     // Obtener factura
     const result = await pool.request()
       .input('id', sql.Int, id)
-      .query('SELECT * FROM facturas WHERE id = @id');
+      .input('negocio_id', sql.Int, negocio_id)
+      .query('SELECT * FROM facturas WHERE id = @id AND negocio_id = @negocio_id');
       
     if (result.recordset.length === 0) return res.status(404).json({ success: false, message: 'Factura no encontrada' });
     const factura = result.recordset[0];
@@ -39,6 +44,7 @@ export const getFacturaById = async (req, res) => {
 export const createFactura = async (req, res) => {
   try {
     const { numero, cliente_id, cliente_nombre, usuario_id, tipo_venta, estado, metodo_pago, subtotal, total, items } = req.body;
+    const negocio_id = req.usuario.negocio_id || 1;
     
     const pool = await getConnection();
     const transaction = new sql.Transaction(pool);
@@ -57,10 +63,11 @@ export const createFactura = async (req, res) => {
         .input('metodo_pago', sql.VarChar, metodo_pago || 'efectivo')
         .input('subtotal', sql.Decimal(16,2), subtotal)
         .input('total', sql.Decimal(16,2), total)
+        .input('negocio_id', sql.Int, negocio_id)
         .query(`
-          INSERT INTO facturas (numero, cliente_id, cliente_nombre, usuario_id, tipo_venta, estado, metodo_pago, subtotal, total) 
+          INSERT INTO facturas (numero, cliente_id, cliente_nombre, usuario_id, tipo_venta, estado, metodo_pago, subtotal, total, negocio_id) 
           OUTPUT INSERTED.id 
-          VALUES (@numero, @cliente_id, @cliente_nombre, @usuario_id, @tipo_venta, @estado, @metodo_pago, @subtotal, @total)
+          VALUES (@numero, @cliente_id, @cliente_nombre, @usuario_id, @tipo_venta, @estado, @metodo_pago, @subtotal, @total, @negocio_id)
         `);
       
       const facturaId = resultFactura.recordset[0].id;
@@ -72,7 +79,8 @@ export const createFactura = async (req, res) => {
         await updateClientRequest
           .input('cliente', sql.Int, cliente_id)
           .input('monto', sql.Decimal(16,2), total)
-          .query('UPDATE clientes SET deuda_total = deuda_total + @monto WHERE id = @cliente');
+          .input('negocio_id', sql.Int, negocio_id)
+          .query('UPDATE clientes SET deuda_total = deuda_total + @monto WHERE id = @cliente AND negocio_id = @negocio_id');
       }
 
       // 2. Insertar los items

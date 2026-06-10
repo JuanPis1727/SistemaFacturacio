@@ -3,6 +3,7 @@ import { getConnection, sql } from '../config/db.js';
 export const procesarDevolucion = async (req, res) => {
   try {
     const { producto_id, cantidad, descripcion, usuario_id } = req.body;
+    const negocio_id = req.usuario.negocio_id || 1;
     
     if (!producto_id || !cantidad || cantidad <= 0) {
       return res.status(400).json({ success: false, message: 'Producto y cantidad válidos son requeridos.' });
@@ -13,7 +14,8 @@ export const procesarDevolucion = async (req, res) => {
     // 1. Obtener datos del producto
     const prodResult = await pool.request()
       .input('producto_id', sql.Int, producto_id)
-      .query('SELECT * FROM productos WHERE id = @producto_id');
+      .input('negocio_id', sql.Int, negocio_id)
+      .query('SELECT * FROM productos WHERE id = @producto_id AND negocio_id = @negocio_id');
       
     if (prodResult.recordset.length === 0) {
       return res.status(404).json({ success: false, message: 'Producto no encontrado.' });
@@ -42,10 +44,11 @@ export const procesarDevolucion = async (req, res) => {
         .input('metodo_pago', sql.VarChar, 'efectivo')
         .input('subtotal', sql.Decimal(16,2), totalDevolucion)
         .input('total', sql.Decimal(16,2), totalDevolucion)
+        .input('negocio_id', sql.Int, negocio_id)
         .query(`
-          INSERT INTO facturas (numero, cliente_nombre, usuario_id, tipo_venta, estado, metodo_pago, subtotal, total) 
+          INSERT INTO facturas (numero, cliente_nombre, usuario_id, tipo_venta, estado, metodo_pago, subtotal, total, negocio_id) 
           OUTPUT INSERTED.id 
-          VALUES (@numero, @cliente_nombre, @usuario_id, @tipo_venta, @estado, @metodo_pago, @subtotal, @total)
+          VALUES (@numero, @cliente_nombre, @usuario_id, @tipo_venta, @estado, @metodo_pago, @subtotal, @total, @negocio_id)
         `);
         
       const facturaId = resFactura.recordset[0].id;

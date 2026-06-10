@@ -2,8 +2,11 @@ import { getConnection, sql } from '../config/db.js';
 
 export const getConfiguracion = async (req, res) => {
   try {
+    const negocio_id = req.usuario.negocio_id || 1;
     const pool = await getConnection();
-    const result = await pool.request().query('SELECT TOP 1 * FROM configuracion ORDER BY id ASC');
+    const result = await pool.request()
+      .input('negocio_id', sql.Int, negocio_id)
+      .query('SELECT TOP 1 * FROM configuracion WHERE negocio_id = @negocio_id ORDER BY id ASC');
     if (result.recordset.length === 0) return res.status(404).json({ success: false, message: 'Configuración no encontrada' });
     res.json({ success: true, data: result.recordset[0] });
   } catch (error) {
@@ -18,10 +21,12 @@ export const updateConfiguracion = async (req, res) => {
       nombre_empresa, nit_empresa, telefono_empresa, email_empresa, 
       direccion_empresa, iva_porcentaje, prefijo_factura, color_primario 
     } = req.body;
+    const negocio_id = req.usuario.negocio_id || 1;
     
     const pool = await getConnection();
     await pool.request()
       .input('id', sql.Int, id)
+      .input('negocio_id', sql.Int, negocio_id)
       .input('nombre_empresa', sql.VarChar, nombre_empresa)
       .input('nit_empresa', sql.VarChar, nit_empresa || '')
       .input('telefono_empresa', sql.VarChar, telefono_empresa || '')
@@ -37,7 +42,7 @@ export const updateConfiguracion = async (req, res) => {
             direccion_empresa = @direccion_empresa, iva_porcentaje = @iva_porcentaje, 
             prefijo_factura = @prefijo_factura, color_primario = @color_primario, 
             actualizado_en = GETDATE()
-        WHERE id = @id
+        WHERE id = @id AND negocio_id = @negocio_id
       `);
       
     res.json({ success: true, message: 'Configuración actualizada' });

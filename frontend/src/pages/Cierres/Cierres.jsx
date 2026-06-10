@@ -59,7 +59,8 @@ export default function Cierres() {
     const payload = {
       usuario_id: 1, // Obtener del Context si se necesita
       efectivo_manual: totalCalculado, // Lo enviamos igual al sistema para evitar "descuadres", el backend lo procesará exacto
-      notas: 'Cierre Total del Día'
+      notas: 'Cierre Total del Día',
+      fecha: new Date().toLocaleDateString('en-CA') // YYYY-MM-DD local
     };
 
     const res = await fetchAPI('/cierres', {

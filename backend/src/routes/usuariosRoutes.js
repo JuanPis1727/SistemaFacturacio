@@ -1,11 +1,12 @@
 import express from 'express';
-import { getUsuarios, createUsuario, updateUsuario, anularUsuario, loginUsuario } from '../controllers/usuariosController.js';
+import { getUsuarios, createUsuario, updateUsuario, anularUsuario, loginUsuario, registroNegocio } from '../controllers/usuariosController.js';
 import { verificarToken, verificarAdmin } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-// Ruta Pública
+// Rutas Públicas
 router.post('/login', loginUsuario);
+router.post('/registro-negocio', registroNegocio);
 
 // Rutas Privadas (Solo Admin)
 router.get('/', verificarToken, verificarAdmin, getUsuarios);

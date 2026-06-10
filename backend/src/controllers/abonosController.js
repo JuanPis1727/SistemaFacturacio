@@ -2,8 +2,11 @@ import { getConnection, sql } from '../config/db.js';
 
 export const getAllAbonos = async (req, res) => {
   try {
+    const negocio_id = req.usuario.negocio_id || 1;
     const pool = await getConnection();
-    const result = await pool.request().query('SELECT * FROM abonos ORDER BY id DESC');
+    const result = await pool.request()
+      .input('negocio_id', sql.Int, negocio_id)
+      .query('SELECT * FROM abonos WHERE negocio_id = @negocio_id ORDER BY id DESC');
     res.json({ success: true, data: result.recordset });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error al obtener todos los abonos', error: error.message });
@@ -13,10 +16,12 @@ export const getAllAbonos = async (req, res) => {
 export const getAbonosByFactura = async (req, res) => {
   try {
     const { factura_id } = req.params;
+    const negocio_id = req.usuario.negocio_id || 1;
     const pool = await getConnection();
     const result = await pool.request()
       .input('factura_id', sql.Int, factura_id)
-      .query('SELECT * FROM abonos WHERE factura_id = @factura_id ORDER BY id DESC');
+      .input('negocio_id', sql.Int, negocio_id)
+      .query('SELECT * FROM abonos WHERE factura_id = @factura_id AND negocio_id = @negocio_id ORDER BY id DESC');
     res.json({ success: true, data: result.recordset });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error al obtener abonos', error: error.message });
@@ -26,6 +31,7 @@ export const getAbonosByFactura = async (req, res) => {
 export const createAbono = async (req, res) => {
   try {
     const { factura_id, cliente_id, usuario_id, monto, notas, metodo_pago } = req.body;
+    const negocio_id = req.usuario.negocio_id || 1;
     const pool = await getConnection();
     
     // Importante: La tabla 'abonos' tiene 2 triggers: 'trg_abono_deuda' y 'trg_estado_factura'.
@@ -35,7 +41,8 @@ export const createAbono = async (req, res) => {
     // 1. Calcular la nueva deuda ANTES de insertar para evitar que posibles triggers la sobrescriban mal
     const clienteRes = await pool.request()
       .input('cliente_id', sql.Int, cliente_id)
-      .query('SELECT deuda_total FROM clientes WHERE id = @cliente_id');
+      .input('negocio_id', sql.Int, negocio_id)
+      .query('SELECT deuda_total FROM clientes WHERE id = @cliente_id AND negocio_id = @negocio_id');
     
     const deudaActual = clienteRes.recordset[0]?.deuda_total || 0;
     let nuevaDeuda = deudaActual - monto;
@@ -47,10 +54,10 @@ export const createAbono = async (req, res) => {
       .input('usuario_id', sql.Int, usuario_id || null)
       .input('monto', sql.Decimal(16,2), monto)
       .input('notas', sql.VarChar, notas || '')
-      .input('metodo_pago', sql.VarChar, metodo_pago || 'efectivo')
+      .input('negocio_id', sql.Int, negocio_id)
       .query(`
-        INSERT INTO abonos (factura_id, cliente_id, usuario_id, monto, notas) 
-        VALUES (@factura_id, @cliente_id, @usuario_id, @monto, @notas);
+        INSERT INTO abonos (factura_id, cliente_id, usuario_id, monto, notas, negocio_id) 
+        VALUES (@factura_id, @cliente_id, @usuario_id, @monto, @notas, @negocio_id);
 
         SELECT SCOPE_IDENTITY() as id;
       `);
@@ -62,13 +69,14 @@ export const createAbono = async (req, res) => {
       .input('factura_id', sql.Int, factura_id)
       .input('cliente_id', sql.Int, cliente_id)
       .input('nueva_deuda', sql.Decimal(16,2), nuevaDeuda)
+      .input('negocio_id', sql.Int, negocio_id)
       .query(`
         -- Actualizar la deuda total del cliente con la resta exacta
-        UPDATE clientes SET deuda_total = @nueva_deuda WHERE id = @cliente_id;
+        UPDATE clientes SET deuda_total = @nueva_deuda WHERE id = @cliente_id AND negocio_id = @negocio_id;
 
         -- Recalcular estado exacto de facturas secuencialmente (waterfall)
         DECLARE @total_pagado_general DECIMAL(16,2);
-        SELECT @total_pagado_general = ISNULL(SUM(monto), 0) FROM abonos WHERE cliente_id = @cliente_id;
+        SELECT @total_pagado_general = ISNULL(SUM(monto), 0) FROM abonos WHERE cliente_id = @cliente_id AND negocio_id = @negocio_id;
         
         DECLARE @running_cost DECIMAL(16,2) = 0;
         DECLARE @fid INT;
@@ -76,7 +84,7 @@ export const createAbono = async (req, res) => {
         
         DECLARE c_fac CURSOR FOR 
             SELECT id, ISNULL(total, 0) FROM facturas 
-            WHERE cliente_id = @cliente_id AND (tipo_venta = 'crédito' OR tipo_venta = 'credito') 
+            WHERE cliente_id = @cliente_id AND negocio_id = @negocio_id AND (tipo_venta = 'crédito' OR tipo_venta = 'credito') 
             ORDER BY fecha ASC;
             
         OPEN c_fac;
@@ -86,9 +94,9 @@ export const createAbono = async (req, res) => {
         BEGIN
             SET @running_cost = @running_cost + @ftot;
             IF @total_pagado_general >= @running_cost
-                UPDATE facturas SET estado = 'Pagado' WHERE id = @fid;
+                UPDATE facturas SET estado = 'Pagado' WHERE id = @fid AND negocio_id = @negocio_id;
             ELSE
-                UPDATE facturas SET estado = 'Pendiente' WHERE id = @fid;
+                UPDATE facturas SET estado = 'Pendiente' WHERE id = @fid AND negocio_id = @negocio_id;
                 
             FETCH NEXT FROM c_fac INTO @fid, @ftot;
         END

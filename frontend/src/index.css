@@ -279,23 +279,32 @@ body {
 @media print {
   @page {
     margin: 0;
-    size: 80mm 297mm;
+    size: 80mm auto; /* Permite altura automática para evitar desperdicio de papel */
   }
 
-  /* Ocultar elementos de UI general */
+  /* Asegurar que los contenedores padre no limiten la altura ni corten el contenido al imprimir */
+  html, body, .app-background, .main-content, .layout-container, .main-content-area, .page-content, .pos-container, .modal-overlay, .modal-content {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    position: static !important; /* Evita que el posicionamiento absoluto/fijo corte la impresión */
+  }
+
   body {
     background: white !important;
     color: black !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
+  /* Ocultar elementos de UI general */
   .no-print, .sidebar, .topbar, .mobile-header, .blobs, .modal-header, .close-btn, .invoice-actions {
     display: none !important;
   }
 
-  /* Mostrar y aislar el area de impresión */
   .modal-overlay {
     background: none !important;
-    position: static;
     display: block !important;
   }
 
@@ -309,14 +318,12 @@ body {
 
   #print-area {
     visibility: visible !important;
-    position: fixed !important;
-    left: 0 !important;
-    top: 0 !important;
+    position: static !important;
     width: 70mm !important; /* Ajuste seguro para rollo de 80mm/58mm dejando un margen prudente */
     max-width: 72mm !important;
     background: white !important;
     color: black !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     padding: 2mm !important;
     font-size: 11px !important;
   }

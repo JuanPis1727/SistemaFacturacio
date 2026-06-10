@@ -142,7 +142,8 @@ export default function CierresDia() {
       total_final: totalFinal,
       usuario_id: user?.id,
       usuario_nombre: user?.nombre,
-      usuario_rol: user?.rol
+      usuario_rol: user?.rol,
+      fecha: new Date().toLocaleDateString('en-CA')
     };
 
     const res = await fetchAPI('/cierres-dia', {
@@ -179,13 +180,12 @@ export default function CierresDia() {
     if (filtroFecha) {
       filtrado = filtrado.filter(c => {
         if (!c.fecha) return false;
-        const fDate = new Date(c.fecha);
-        const filterDate = new Date(filtroFecha);
-        // Ajustar el offset de zona horaria porque el input type="date" genera UTC a medianoche
-        filterDate.setMinutes(filterDate.getMinutes() + filterDate.getTimezoneOffset());
-        return fDate.getFullYear() === filterDate.getFullYear() &&
-               fDate.getMonth() === filterDate.getMonth() &&
-               fDate.getDate() === filterDate.getDate();
+        const d = new Date(c.fecha);
+        const year = d.getUTCFullYear();
+        const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(d.getUTCDate()).padStart(2, '0');
+        const cFechaStr = `${year}-${month}-${day}`;
+        return cFechaStr === filtroFecha;
       });
     }
     if (filtroProveedor) {
@@ -396,7 +396,13 @@ export default function CierresDia() {
                         <td style={{ fontWeight: 500 }}>
                           <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <Calendar size={16} />
-                            {new Date(cierre.fecha).toLocaleDateString()}
+                            {(() => {
+                              const d = new Date(cierre.fecha);
+                              const day = String(d.getUTCDate()).padStart(2, '0');
+                              const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+                              const year = d.getUTCFullYear();
+                              return `${day}/${month}/${year}`;
+                            })()}
                           </span>
                         </td>
                         <td>
@@ -465,7 +471,13 @@ export default function CierresDia() {
                <div style={{ textAlign: 'center', marginBottom: '15px' }}>
                  <h3 style={{ margin: 0, fontSize: '14px' }}>REPORTE DE CIERRE</h3>
                  <p style={{ margin: 0 }}>----------------------------</p>
-                 <p style={{ margin: '3px 0' }}>Fecha: {new Date(viewInvoice.fecha).toLocaleDateString()}</p>
+                  <p style={{ margin: '3px 0' }}>Fecha: {(() => {
+                    const d = new Date(viewInvoice.fecha);
+                    const day = String(d.getUTCDate()).padStart(2, '0');
+                    const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+                    const year = d.getUTCFullYear();
+                    return `${day}/${month}/${year}`;
+                  })()}</p>
                  <p style={{ margin: '3px 0' }}>Usuario: {viewInvoice.usuario_nombre || 'Desconocido'} ({viewInvoice.usuario_rol || 'N/A'})</p>
                  <p style={{ margin: 0 }}>----------------------------</p>
                </div>
