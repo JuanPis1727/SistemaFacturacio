@@ -10,12 +10,19 @@ Base de datos SQL Server. Tablas disponibles:
 3. clientes(id, nombre, cedula, email, telefono, direccion, deuda_total, activo, negocio_id)
 4. productos(id, nombre, codigo, tipo, descripcion, precio_costo, precio_venta, stock, stock_minimo, por_peso, activo, negocio_id)
 5. inventario_entradas(id, producto_id, usuario_id, cantidad, stock_antes, stock_despues, precio_costo, proveedor, notas, fecha, negocio_id)
+   - NOTA: El campo "proveedor" aquí almacena el nombre del proveedor en texto plano (opcional). Si está vacío o es nulo, significa que no se registró proveedor al ingresar el stock.
 6. facturas(id, numero, cliente_id, cliente_nombre, usuario_id, tipo_venta, estado, metodo_pago, subtotal, total, monto_entregado, cambio, fecha, negocio_id)
    - NOTA: Las facturas con estado 'Pagada' o 'Pendiente' representan ventas. Las facturas con total negativo y número que empieza por 'DEV-' representan devoluciones.
 7. factura_items(id, factura_id, producto_id, descripcion, cantidad, precio_costo, precio_unitario, subtotal, negocio_id)
 8. abonos(id, factura_id, cliente_id, usuario_id, monto, fecha, notas, negocio_id)
 9. cierres_caja(id, usuario_id, fecha, total_facturacion, efectivo_manual, diferencia, facturas_procesadas, notas, negocio_id)
 10. cierres_dia(id, fecha, total_facturas, total_ajustes, total_final, usuario_id, usuario_nombre, usuario_rol, negocio_id)
+11. facturas_cierre(id, cierre_id, proveedor_id, proveedor_nombre, valor, descripcion)
+    - NOTA: Registra facturas/compras a proveedores hechas en el día. Se relaciona con cierres_dia mediante "cierre_id". "proveedor_nombre" contiene el nombre del proveedor.
+12. ajustes_cierre(id, cierre_id, tipo, valor, descripcion)
+    - NOTA: Se relaciona con cierres_dia mediante "cierre_id".
+13. proveedores(id, nombre, nit, telefono, email, direccion, negocio_id)
+    - NOTA: Catálogo oficial de proveedores creados en el negocio.
 
 REGLAS DE SEGURIDAD IMPORTANTES:
 1. La consulta DEBE ser estrictamente un SELECT de lectura.
