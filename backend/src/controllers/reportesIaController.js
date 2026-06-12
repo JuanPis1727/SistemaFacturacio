@@ -41,9 +41,12 @@ export const consultarReporteIa = async (req, res) => {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
+    const modelJson = genAI.getGenerativeModel({
       model: 'gemini-2.5-flash',
       generationConfig: { responseMimeType: 'application/json' }
+    });
+    const modelText = genAI.getGenerativeModel({
+      model: 'gemini-2.5-flash'
     });
 
     // Fase 1: Generación de la consulta SQL
@@ -60,15 +63,19 @@ export const consultarReporteIa = async (req, res) => {
       "explicacion_previa": "Breve descripción de lo que busca tu consulta SQL",
       "grafica_sugerada": {
         "requiereGrafica": true_o_false,
-        "tipo": "bar" | "line" | "pie",
+        "tipo": "bar" | "line" | "pie" | "doughnut",
         "titulo": "Título de la gráfica",
         "columnaLabel": "nombre_columna_etiquetas",
         "columnaData": "nombre_columna_valores"
       }
     }
+    
+    Reglas para gráficas:
+    - Utiliza 'pie' o 'doughnut' para distribuciones, porcentajes o partes de un todo (por ejemplo: ventas por método de pago, participación de ventas por categoría, proporción de productos en stock, etc.).
+    - Utiliza 'bar' o 'line' para series de tiempo, evoluciones cronológicas, comparativas de magnitudes o rankings.
     `;
 
-    const resultSql = await model.generateContent(promptSql);
+    const resultSql = await modelJson.generateContent(promptSql);
     const textSql = resultSql.response.text();
     
     let generatedConfig;
@@ -139,7 +146,7 @@ export const consultarReporteIa = async (req, res) => {
       `;
 
       try {
-        const resultAnalisis = await model.generateContent(promptAnalisis);
+        const resultAnalisis = await modelText.generateContent(promptAnalisis);
         explicacionFinal = resultAnalisis.response.text();
       } catch (errAnalisis) {
         console.error('Error al generar análisis final:', errAnalisis);
