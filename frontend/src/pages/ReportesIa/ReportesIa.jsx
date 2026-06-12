@@ -364,15 +364,7 @@ export default function ReportesIa() {
                 </button>
               )}
 
-              {/* Consulta SQL generada (Solo desarrolladores/Admin, informativa discreta) */}
-              {msg.sql && (
-                <details style={{ marginTop: '1rem', fontSize: '0.75rem', color: '#94a3b8', cursor: 'pointer' }}>
-                  <summary>Ver consulta SQL ejecutada por seguridad</summary>
-                  <pre style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginTop: '5px', overflowX: 'auto', whiteSpace: 'pre-wrap' }}>
-                    {msg.sql}
-                  </pre>
-                </details>
-              )}
+
             </div>
           </div>
         ))}
