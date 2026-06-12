@@ -62,9 +62,10 @@ export const procesarDevolucion = async (req, res) => {
         .input('cantidad', sql.Decimal(10,2), -cantidad)
         .input('precio_unitario', sql.Decimal(14,2), precioVenta)
         .input('subtotal', sql.Decimal(14,2), totalDevolucion)
+        .input('negocio_id', sql.Int, negocio_id)
         .query(`
-          INSERT INTO factura_items (factura_id, producto_id, descripcion, cantidad, precio_unitario, subtotal)
-          VALUES (@factura_id, @producto_id, @descripcion, @cantidad, @precio_unitario, @subtotal);
+          INSERT INTO factura_items (factura_id, producto_id, descripcion, cantidad, precio_unitario, subtotal, negocio_id)
+          VALUES (@factura_id, @producto_id, @descripcion, @cantidad, @precio_unitario, @subtotal, @negocio_id);
         `);
 
       await transaction.commit();
