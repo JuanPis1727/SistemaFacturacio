@@ -14,6 +14,7 @@ import Usuarios from './pages/Usuarios/Usuarios';
 import Proveedores from './pages/Proveedores/Proveedores';
 import CierresDia from './pages/CierresDia/CierresDia';
 import Devoluciones from './pages/Devoluciones/Devoluciones';
+import ReportesIa from './pages/ReportesIa/ReportesIa';
 
 const AdminRoute = ({ children }) => {
   const { user } = useContext(AuthContext);
@@ -55,6 +56,7 @@ function App() {
               <Route path="/proveedores" element={<AdminRoute><Proveedores /></AdminRoute>} />
               <Route path="/cierres-dia" element={<CierresDia />} />
               <Route path="/devoluciones" element={<Devoluciones />} />
+              <Route path="/reportes-ia" element={<AdminRoute><ReportesIa /></AdminRoute>} />
               
               <Route path="/historial" element={<Historial />} />
             </Route>

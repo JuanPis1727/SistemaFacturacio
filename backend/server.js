@@ -22,6 +22,7 @@ import proveedoresRoutes from './src/routes/proveedoresRoutes.js';
 import cierresDiaRoutes from './src/routes/cierresDiaRoutes.js';
 import usuariosRoutes from './src/routes/usuariosRoutes.js';
 import devolucionesRoutes from './src/routes/devolucionesRoutes.js';
+import reportesIaRoutes from './src/routes/reportesIaRoutes.js';
 import { verificarToken } from './src/middlewares/authMiddleware.js';
 
 const app = express();
@@ -47,6 +48,7 @@ app.use('/api/configuracion', verificarToken, configuracionRoutes);
 app.use('/api/proveedores', verificarToken, proveedoresRoutes);
 app.use('/api/cierres-dia', verificarToken, cierresDiaRoutes);
 app.use('/api/devoluciones', verificarToken, devolucionesRoutes);
+app.use('/api/reportes-ia', verificarToken, reportesIaRoutes);
 
 // Usuarios tiene su propia gestión de JWT (login público)
 app.use('/api/usuarios', usuariosRoutes);
